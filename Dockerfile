@@ -28,16 +28,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cpanminus \
     ncbi-blast+ \
     paml \
-    raxml
+    raxml \
+    muscle \
+    libipc-run-perl \
+    libxml-parser-perl \
+    libxml-dom-xpath-perl \
+    perl-doc \
+    clustalw \
+    t-coffee \
+    mafft \
+    prank \
+    curl
 
 # the input/output working directory for data files
 RUN mkdir /data
 
-# install packages
-RUN cpanm Bio::Phylo
-RUN cpanm BioPerl
-RUN cpanm Bio::DB::NCBIHelper
-RUN cpanm Bio::Tools::Phylo::PAML
-RUN cpanm BioPerl-Run
+# symlink to please Bio::Tools::Phylo::PAML
+RUN ln -s /usr/bin/paml-evolver /usr/bin/evolver
 
-# ENTRYPOINT ["/usr/local/src/treePL/src/treePL"]
+# fetch translatorx
+RUN curl -o /usr/local/src/script/translatorx http://pc16141.mncn.csic.es/cgi-bin/translatorx_vLocal.pl
+RUN chmod 755 /usr/local/src/script/translatorx
+
+# install packages
+RUN cpanm --notest \
+	BioPerl \
+	https://cpan.metacpan.org/authors/id/C/CJ/CJFIELDS/BioPerl-Run-1.007003.tar.gz \
+	Bio::Phylo \
+	Bio::DB::NCBIHelper \
+	Bio::Tools::Phylo::PAML

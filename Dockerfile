@@ -26,9 +26,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     automake \
     libtool \
     cpanminus \
-    ncbi-blast+
+    ncbi-blast+ \
+    paml \
+    raxml
 
 # the input/output working directory for data files
 RUN mkdir /data
+
+# install packages
+RUN cpanm Bio::Phylo
+RUN cpanm BioPerl
+RUN cpanm Bio::DB::NCBIHelper
+RUN cpanm Bio::Tools::Phylo::PAML
+RUN cpanm BioPerl-Run
 
 # ENTRYPOINT ["/usr/local/src/treePL/src/treePL"]

@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use File::Path qw(make_path);
 use Getopt::Long;
 use Bio::DB::GenBank;
 use Bio::Phylo::Util::Logger ':levels';
@@ -119,8 +120,9 @@ FEAT: for my $feat ( $seq->get_SeqFeatures ) {
 sub seqwriter {
 	my %args = @_;
 	my ( $type, $name, $seq ) = @args{qw(type name seq)};
-	mkdir "${datadir}/${name}" if not -d "${datadir}/${name}";
-	my $filename = "${datadir}/${name}/${type}.fasta";
+	my $dir = "${datadir}/genes/${name}";
+	make_path($dir) if not -d $dir;
+	my $filename = "${dir}/${type}.fasta";
 	
 	INFO "going to write ${type} seq for ${name} to ${filename}";
 	open my $fh, '>', $filename;

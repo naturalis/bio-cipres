@@ -19,4 +19,4 @@ The basic procedure is as follows, assuming you wish to build from source:
 ## Entering into an interactive session
 To check the sanity of the environment, you can log into a shell thusly:
 
-    docker run -v data:/data -it naturalis/covid19-phylogeny /bin/bash
+    docker run -v `pwd`/data:/data -it naturalis/covid19-phylogeny /bin/bash

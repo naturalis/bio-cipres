@@ -1,0 +1,87 @@
+#!/usr/bin/perl
+use strict;
+use threads;
+use warnings;
+use Bio::SeqIO;
+use File::Copy;
+use Getopt::Long;
+use File::Temp 'tempdir';
+use Bio::Phylo::Util::Logger ':levels';
+
+# process command line arguments
+my $infile;
+my $chunks      = 20;
+my $verbosity   = INFO;
+my $muscle      = 'muscle';
+my $delete;
+my $outfile;
+GetOptions(
+	'infile=s'  => \$infile,
+	'chunks=i'  => \$chunks,
+	'verbose+'  => \$verbosity,	
+	'delete'    => \$delete,
+	'muscle=s'  => \$muscle,
+	'outfile=s' => \$outfile,
+);
+
+# default name
+$outfile = $infile . '.out';
+
+# instantiate services
+Bio::Phylo::Util::Logger->new(
+	'-class'    => 'main',
+	'-level'    => $verbosity,
+);
+
+my $in = Bio::SeqIO->new(
+	'-file'     => $infile,
+	'-format'   => 'fasta',
+); 
+
+my $dir = tempdir();
+
+# start chunking
+INFO "starting to split $infile into chunks of $chunks sequences";
+my $counter  = 1;
+my @files    = ( "${dir}/${infile}.${counter}" );
+my $out      = Bio::SeqIO->new(
+	'-file'   => '>' . $files[-1],
+	'-format' => 'fasta',
+);
+while( my $seq = $in->next_seq ) {
+	$out->write_seq($seq);
+	if ( ( $counter++ % $chunks ) == 0 ) {
+		DEBUG "next chunk at seq $counter";
+		push @files, "${dir}/${infile}.${counter}";
+		$out = Bio::SeqIO->new(
+			'-file'   => '>' . $files[-1],
+			'-format' => 'fasta',
+		);
+	}
+}
+
+# do the initial alignment
+INFO "launching alignment threads";
+my @threads  = map { threads->create( \&align, $_ ) } @files;
+my @outfiles = map { $_->join } @threads;
+
+# do the profiles
+my $master;
+for my $i ( 1 .. $#outfiles ) {
+	$master      = $outfiles[0];
+	my $addition = $outfiles[$i];
+	my $out      = $master . '.prof';
+	system( "$muscle -quiet -profile -in1 $master -in2 $addition > $out" );
+	copy( $out, $master );
+	unlink( $out );
+}
+copy( $master, $outfile );
+unlink( $master );
+
+sub align {
+	my $infile = shift;
+	my $outfile = $infile . '.aln';
+	system( "$muscle -quiet -in $infile > $outfile" );
+	unlink $infile;
+	return $outfile;
+}

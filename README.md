@@ -1,5 +1,6 @@
 # covid19-phylogeny
-Dockerized workflow for phylogenetic analysis of SARS-CoV-2 genomes
+Dockerized [workflow](https://drive.google.com/file/d/1V1vR73uflUV383IgcHxkmu27TulWSu38/view?usp=sharing) 
+for phylogenetic analysis of SARS-CoV-2 genomes
 
 ## Orchestrating the workflow
 Workflow steps will be orchestrated by wrapping scripts that are inside a

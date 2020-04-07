@@ -120,6 +120,7 @@ FEAT: for my $feat ( $seq->get_SeqFeatures ) {
 sub seqwriter {
 	my %args = @_;
 	my ( $type, $name, $seq ) = @args{qw(type name seq)};
+	$name =~ s/ /_/g;
 	my $dir = "${datadir}/genes/${name}";
 	make_path($dir) if not -d $dir;
 	my $filename = "${dir}/${type}.fasta";

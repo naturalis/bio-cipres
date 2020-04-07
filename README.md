@@ -10,8 +10,7 @@ Steps to wrap are:
 
 1. preprocess the reference genome using `script/refseqpp -v`, results ending up in `/data/genes/*`
 2. makeblastdb on the concatenated genomes in `data/genomes/\*.fasta`, e.g. 
-
-    makeblastdb -in gisaid_cov2020_sequences.fasta -dbtype nucl
+    `makeblastdb -in gisaid_cov2020_sequences.fasta -dbtype nucl`
 
 ## Building the Dockerfile
 The basic procedure is as follows, assuming you wish to build from source:

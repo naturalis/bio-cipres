@@ -42,6 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # the input/output working directory for data files
 RUN mkdir /data
+ENV DATADIR /data
 
 # symlink to please Bio::Tools::Phylo::PAML
 RUN ln -s /usr/bin/paml-evolver /usr/bin/evolver

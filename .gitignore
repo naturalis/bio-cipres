@@ -1,5 +1,6 @@
 .DS_Store
 data/genomes/gisaid_cov2020_sequences.fasta
+data/genomes/
 
 !Build/
 .last_cover_stats

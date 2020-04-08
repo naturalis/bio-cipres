@@ -9,7 +9,7 @@ in the name, which is different from the repo name (sorry). With the account
 and app key, you can then populate a YAML file `cipres_appinfo.yml` thusly, 
 substituting the fields with pointy brackets with the appropriate values:
 
-```{yaml}
+```yaml
 URL: https://cipresrest.sdsc.edu/cipresrest/v1
 KEY: <app key>
 CRA_USER: <user>

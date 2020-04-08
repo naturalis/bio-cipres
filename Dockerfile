@@ -57,4 +57,5 @@ RUN cpanm --notest \
 	https://cpan.metacpan.org/authors/id/C/CJ/CJFIELDS/BioPerl-Run-1.007003.tar.gz \
 	Bio::Phylo \
 	Bio::DB::NCBIHelper \
-	Bio::Tools::Phylo::PAML
+	Bio::Tools::Phylo::PAML \
+	XML::Twig

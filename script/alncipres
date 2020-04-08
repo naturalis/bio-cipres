@@ -121,7 +121,7 @@ sub check_status {
 		}
 	)->parse($result);
 	my $time = localtime();
-	INFO "[$time] completed: $status";
+	INFO "[$time] $infile completed: $status";
 	return { 'completed' => $status, 'outfiles' => $outfiles };
 }
 

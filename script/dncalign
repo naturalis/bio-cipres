@@ -4,8 +4,9 @@ use threads;
 use warnings;
 use Bio::SeqIO;
 use File::Copy;
-use Getopt::Long;
+use File::Spec;
 use File::Temp 'tempdir';
+use Getopt::Long;
 use Bio::Phylo::Util::Logger ':levels';
 
 # process command line arguments
@@ -13,19 +14,19 @@ my $infile;
 my $chunks      = 20;
 my $verbosity   = INFO;
 my $muscle      = 'muscle';
-my $delete;
 my $outfile;
+my $yml;
 GetOptions(
 	'infile=s'  => \$infile,
 	'chunks=i'  => \$chunks,
 	'verbose+'  => \$verbosity,	
-	'delete'    => \$delete,
-	'muscle=s'  => \$muscle,
 	'outfile=s' => \$outfile,
+	'yml=s'     => \$yml,
+	'muscle=s'  => \$muscle,
 );
 
 # default name
-$outfile = $infile . '.out';
+$outfile = $infile . '.out' if not $outfile;
 
 # instantiate services
 Bio::Phylo::Util::Logger->new(
@@ -38,12 +39,14 @@ my $in = Bio::SeqIO->new(
 	'-format'   => 'fasta',
 ); 
 
+# prepare temp dir and file stem
 my $dir = tempdir();
+my ( $v, $d, $base ) = File::Spec->splitpath( $infile );
 
 # start chunking
 INFO "starting to split $infile into chunks of $chunks sequences";
 my $counter  = 1;
-my @files    = ( "${dir}/${infile}.${counter}" );
+my @files    = ( "${dir}/${base}.${counter}" );
 my $out      = Bio::SeqIO->new(
 	'-file'   => '>' . $files[-1],
 	'-format' => 'fasta',
@@ -52,7 +55,7 @@ while( my $seq = $in->next_seq ) {
 	$out->write_seq($seq);
 	if ( ( $counter++ % $chunks ) == 0 ) {
 		DEBUG "next chunk at seq $counter";
-		push @files, "${dir}/${infile}.${counter}";
+		push @files, "${dir}/${base}.${counter}";
 		$out = Bio::SeqIO->new(
 			'-file'   => '>' . $files[-1],
 			'-format' => 'fasta',
@@ -62,26 +65,28 @@ while( my $seq = $in->next_seq ) {
 
 # do the initial alignment
 INFO "launching alignment threads";
-my @threads  = map { threads->create( \&align, $_ ) } @files;
+my @threads  = map { sleep(5); threads->create( \&align, $_ ) } @files;
 my @outfiles = map { $_->join } @threads;
 
 # do the profiles
-my $master;
+my $master = "${dir}/profile.aln.fasta";
+copy( $outfiles[0], $master );
 for my $i ( 1 .. $#outfiles ) {
-	$master      = $outfiles[0];
 	my $addition = $outfiles[$i];
-	my $out      = $master . '.prof';
+	my $out      = $master . '.tmp';
 	system( "$muscle -quiet -profile -in1 $master -in2 $addition > $out" );
 	copy( $out, $master );
-	unlink( $out );
+#	unlink( $out );
 }
 copy( $master, $outfile );
-unlink( $master );
+#unlink( $master );
 
 sub align {
 	my $infile = shift;
-	my $outfile = $infile . '.aln';
-	system( "$muscle -quiet -in $infile > $outfile" );
-	unlink $infile;
+	my $aligned = `alncipres -i $infile -y $yml -v`;
+	my $outfile = "${infile}.out";
+	open my $fh, '>', $outfile or die $!;
+	print $fh $aligned;
+	close $fh;
 	return $outfile;
 }

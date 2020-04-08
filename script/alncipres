@@ -1,10 +1,11 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use YAML;
 use XML::Twig;
 use Getopt::Long;
+use Data::Dumper;
 use LWP::UserAgent;
+use YAML qw(LoadFile);
 use Bio::Phylo::Util::Logger ':levels';
 
 # process command line arguments
@@ -24,7 +25,7 @@ align( $infile, $yml );
 sub align {
 	my ( $infile, $yml ) = @_;
 	INFO "infile: $infile - YAML: $yml";
-	my $info = Load($yml);
+	my $info = LoadFile($yml);
 	
 	# launch the job
 	my $status_url = launch_aln( $info, $infile );
@@ -72,11 +73,12 @@ sub launch_aln {
 	# run submission, parse result
 	my $status_url;	
 	my $result = `$command`;
-	my $twig = XML::Twig->new(
+	DEBUG $result;
+	XML::Twig->new(
 		'twig_handlers' => {
 			'jobstatus/selfUri/url' => sub { $status_url = $_->text }
 		}
-	);
+	)->parse($result);
 	INFO $status_url;
 	return $status_url;
 }
@@ -89,15 +91,16 @@ sub aln_command {
 	my $KEY      = $info->{'KEY'};
 	my $URL      = $info->{'URL'};	
 	my $command = <<"CURL_COMMAND";
-curl \
-	-u $CRA_USER:$PASSWORD \
-	-H cipres-appkey:$KEY \
-	$URL/job/$CRA_USER \
-	-F tool=MUSCLE  \
-	-F input.infile_=\@$infile \
+curl \\
+	--silent \\
+	-u $CRA_USER:$PASSWORD \\
+	-H cipres-appkey:$KEY \\
+	$URL/job/$CRA_USER \\
+	-F tool=MUSCLE  \\
+	-F input.infile_=\@$infile \\
 	-F metadata.statusEmail=true
 CURL_COMMAND
-	INFO $command;
+	DEBUG $command;
 	return $command;
 }
 
@@ -109,12 +112,13 @@ sub check_status {
 	# post request, fetch result
 	my ( $status, $outfiles );
 	my $result = `$command`;
-	my $twig = XML::Twig->new(
+	DEBUG $result;
+	XML::Twig->new(
 		'twig_handlers' => {
 			'jobstatus/resultsUri/url' => sub { $outfiles = $_->text },
 			'jobstatus/terminalStage'  => sub { $status   = $_->text }			
 		}
-	);
+	)->parse($result);
 	INFO "terminalStage: $status";
 	return { 'completed' => $status, 'outfiles' => $outfiles };
 }
@@ -126,12 +130,13 @@ sub status_command {
 	my $PASSWORD = $info->{'PASSWORD'};
 	my $KEY      = $info->{'KEY'};
 	my $command = <<"CURL_COMMAND";
-curl \
-	-u $CRA_USER:$PASSWORD \
-	-H cipres-appkey:$KEY \
+curl \\
+	--silent \\
+	-u $CRA_USER:$PASSWORD \\
+	-H cipres-appkey:$KEY \\
 	$status_url
 CURL_COMMAND
-	INFO $command;
+	DEBUG $command;
 	return $command;
 }
 

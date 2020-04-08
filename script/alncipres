@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use YAML;
+use XML::Twig;
+use Getopt::Long;
+use LWP::UserAgent;
+use Bio::Phylo::Util::Logger ':levels';
+
+# given $infile and $yml location, returns aligned FASTA
+sub align {
+	my ( $infile, $yml ) = @_;
+	my $info = Load($yml);
+	
+	# launch the job
+	my $status_url = launch_aln( $info, $infile );
+	
+	# poll results
+	my $fasta;
+	POLL: while ( 1 ) {
+		my $status = check_status( $info, $infile, $status_url );
+		if ( $status->{'completed'} eq 'true' ) {
+			my $outfiles = $status->{'outfiles'};
+			$fasta = get_result( $info, $infile, $outfiles );
+			last POLL;
+		}
+		sleep 60;
+	}
+	return $fasta;
+}
+
+# given $info, $infile, $outfiles, returns FASTA string
+sub get_result {
+	my ( $info, $infile, $outfiles ) = @_;
+	my $command = status_command( $info, $infile, $outfiles );
+	my $result = `$command`;
+	my $location;
+	my $twig = XML::Twig->new(
+		'twig_handlers' => {
+			'results/jobfiles/jobfile' => sub {
+				my $node = $_;
+				if ( $node->findvalue('parameterName') eq 'fasta_output' ) {
+					$location = $node->findvalue('downloadUri/url');
+				}
+			}
+		}
+	);
+	my $resultcommand = status_command( $info, $infile, $location );
+	return `$resultcommand`;
+}
+
+# given $info and $infile, returns $status_url
+sub launch_aln {
+	my ( $info, $infile ) = @_;
+	my $command = aln_command( $info, $infile );
+
+	# run submission, parse result
+	my $status_url;	
+	my $result = `$command`;
+	my $twig = XML::Twig->new(
+		'twig_handlers' => {
+			'jobstatus/selfUri/url' => sub { $status_url = $_->text }
+		}
+	);
+	return $status_url;
+}
+
+# given $info and $infile, composes cURL command to launch MUSCLE job
+sub aln_command {
+	my ( $info, $infile ) = @_;
+	my $CRA_USER = $info->{'CRA_USER'};
+	my $PASSWORD = $info->{'PASSWORD'};
+	my $KEY      = $info->{'KEY'};
+	my $URL      = $info->{'URL'};	
+	return <<"CURL_COMMAND";
+curl \
+	-u $CRA_USER:$PASSWORD \
+	-H cipres-appkey:$KEY \
+	$URL/job/$CRA_USER \
+	-F tool=MUSCLE  \
+	-F input.infile_=\@$infile \
+	-F metadata.statusEmail=true
+CURL_COMMAND
+}
+
+# given $info, $infile and $status_url, checks and returns terminalStage
+sub check_status {
+	my ( $info, $infile, $status_url ) = @_;
+	my $command = status_command( $info, $infile, $status_url );
+	
+	# post request, fetch result
+	my ( $status, $outfiles );
+	my $result = `$command`;
+	my $twig = XML::Twig->new(
+		'twig_handlers' => {
+			'jobstatus/terminalStage'  => sub { $status   = $_->text },
+			'jobstatus/resultsUri/url' => sub { $outfiles = $_->text }			
+		}
+	);
+	return { 'completed' => $status, 'outfiles' => $outfiles };
+}
+
+# given $info, $infile and $status_url, composes cURL command to check status
+sub status_command {
+	my ( $info, $infile, $status_url ) = @_;
+	my $CRA_USER = $info->{'CRA_USER'};
+	my $PASSWORD = $info->{'PASSWORD'};
+	my $KEY      = $info->{'KEY'};
+	return <<"CURL_COMMAND";
+curl \
+	-u $CRA_USER:$PASSWORD \
+	-H cipres-appkey:$KEY \
+	$status_url
+CURL_COMMAND
+}
+

@@ -10,6 +10,7 @@ and app key, you can then populate a YAML file `cipres_appinfo.yml` thusly,
 substituting the fields with pointy brackets with the appropriate values:
 
 ```yaml
+---
 URL: https://cipresrest.sdsc.edu/cipresrest/v1
 KEY: <app key>
 CRA_USER: <user>

@@ -19,7 +19,7 @@ GetOptions(
 );
 
 Bio::Phylo::Util::Logger->new( '-level' => $verbosity, '-class' => 'main' );
-align( $infile, $yml );
+print align( $infile, $yml );
 
 # given $infile and $yml location, returns aligned FASTA
 sub align {
@@ -50,17 +50,18 @@ sub get_result {
 	my $command = status_command( $info, $infile, $outfiles );
 	my $result = `$command`;
 	my $location;
-	my $twig = XML::Twig->new(
+	DEBUG $result;
+	XML::Twig->new(
 		'twig_handlers' => {
 			'results/jobfiles/jobfile' => sub {
 				my $node = $_;
-				if ( $node->findvalue('parameterName') eq 'fasta_output' ) {
+				if ( $node->findvalue('filename') eq 'output.fasta' ) {
 					$location = $node->findvalue('downloadUri/url');
 				}
-				INFO $node->toString;
+				DEBUG $node->toString;
 			}
 		}
-	);
+	)->parse($result);
 	my $resultcommand = status_command( $info, $infile, $location );
 	return `$resultcommand`;
 }
@@ -119,7 +120,8 @@ sub check_status {
 			'jobstatus/terminalStage'  => sub { $status   = $_->text }			
 		}
 	)->parse($result);
-	INFO "terminalStage: $status";
+	my $time = localtime();
+	INFO "[$time] completed: $status";
 	return { 'completed' => $status, 'outfiles' => $outfiles };
 }
 

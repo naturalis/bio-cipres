@@ -6,7 +6,7 @@ for phylogenetic analysis of SARS-CoV-2 genomes
 The workflow requires a DEVELOPER account (not a normal user account) on 
 CIPRES, and a registration for the app `corvid19_phylogeny`. Note the underscore
 in the name, which is different from the repo name (sorry). With the account
-and app key, you can then populate a YAML file `cipres_appinfo.yml` thusly, 
+and app key, you can then populate a YAML file `data/cipres_appinfo.yml` thusly, 
 substituting the fields with pointy brackets with the appropriate values:
 
 ```yaml

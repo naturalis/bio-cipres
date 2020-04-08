@@ -2,6 +2,20 @@
 Dockerized [workflow](https://drive.google.com/file/d/1V1vR73uflUV383IgcHxkmu27TulWSu38/view?usp=sharing) 
 for phylogenetic analysis of SARS-CoV-2 genomes
 
+## Prerequisites
+The workflow requires a DEVELOPER account (not a normal user account) on 
+CIPRES, and a registration for the app `corvid19_phylogeny`. Note the underscore
+in the name, which is different from the repo name (sorry). With the account
+and app key, you can then populate a YAML file `cipres_appinfo.yml` thusly, 
+substituting the fields with pointy brackets with the appropriate values:
+
+```yaml
+URL: https://cipresrest.sdsc.edu/cipresrest/v1
+KEY: <app key>
+CRA_USER: <user>
+PASSWORD: <pass>
+```
+
 ## Orchestrating the workflow
 Workflow steps will be orchestrated by wrapping scripts that are inside a
 docker container (and which in turn are wrapping some executables). The

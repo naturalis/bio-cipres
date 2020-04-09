@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Bio::SeqIO;
+use Getopt::Long;
+use Bio::Phylo::Util::Logger ':levels';
+
+# Writes sequences greater than --length from infile to outfile
+#
+# Usage:
+# seqfilter -i infile.fasta -o outfile.fasta -l 25000
+
+# process command line arguments
+my $verbosity = INFO;
+my $infile;
+my $outfile;
+my $length = 25_000;
+GetOptions(
+	'infile=s'  => \$infile,
+	'outfile=s' => \$outfile,
+	'verbose+'  => \$verbosity,
+	'length=i'  => \$length,
+);
+
+# configure services
+my $log = Bio::Phylo::Util::Logger->new( 
+	'-level'    => $verbosity, 
+	'-class'    => 'main' 
+);
+
+my $in = Bio::SeqIO(
+	'-format'   => 'fasta',
+	'-file'     => $infile,
+);
+
+my $out = Bio::SeqIO(
+	'-format'   => 'fasta',
+	'-file'     => ">$outfile",
+);
+
+# start filtering
+while( my $seq = $in->next_seq ) {
+	if ( length( $seq->seq ) >= $length ) {
+		$out->write_seq( $seq );
+	}
+}
+

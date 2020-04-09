@@ -5,11 +5,6 @@ use Bio::SeqIO;
 use Getopt::Long;
 use Bio::Phylo::Util::Logger ':levels';
 
-# Writes sequences greater than --length from infile to outfile
-#
-# Usage:
-# seqfilter -i infile.fasta -o outfile.fasta -l 25000
-
 # process command line arguments
 my $verbosity = INFO;
 my $infile;

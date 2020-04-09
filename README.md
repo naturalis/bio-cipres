@@ -30,12 +30,12 @@ I'm setting up a preprocessing pipeline that does the following:
 1. **seqfilter** - filter out short sequence records (default: <25k, change with `--length=20000`)
 2. **sequniqid** - filter out duplicate accession numbers (e.g. when merging from multiple taxon levels)
 3. **sequniqseq** - filter out duplicate sequence data (i.e. exact same genome in multiple samples)
-4. **seqchunk** - split stream into files with `--chunk=400` records (to shoehorn through CIPRES)
+4. **seqchunk** - split stream into files with 25 records (to shoehorn through CIPRES)
 
 Example usage:
 
 ```
-gunzip -c /data/genomes/*.gz | seqfilter | sequniqid | sequniqseq | seqchunk -c 400 -o /data/tmp
+gunzip -c /data/genomes/*.gz | seqfilter | sequniqid | sequniqseq | seqchunk -o /data/tmp
 ```
 
 ### 2. align the viral genomes

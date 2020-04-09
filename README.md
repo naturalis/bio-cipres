@@ -57,7 +57,7 @@ aligned chunks are profile aligned relative to one another:
 
 Example usage:
 
-```
+```bash
 # these steps cannot be piped
 alnspread -i /data/tmp -y /data/cipres_appinfo.yml
 alngather -i /data/tmp -o /data/alignments/profile.aln

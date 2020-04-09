@@ -25,7 +25,7 @@ Steps to wrap are:
 
 ### 1. preprocessing
 
-I'm setting up a preprocessing pipeline that does the following:
+The first stage is preprocessing pipeline that does the following:
 
 1. **seqfilter** - filter out short sequence records (default: <25k, change with `--length=20000`)
 2. **sequniqid** - filter out duplicate accession numbers (e.g. when merging from multiple taxon levels)
@@ -38,15 +38,20 @@ Example usage:
 gunzip -c /data/genomes/*.gz | seqfilter | sequniqid | sequniqseq | seqchunk -o /data/tmp
 ```
 
+The end result is a folder (specified with `-o`) that contains files of the right 
+dimensions to submit to the CIPRES web server. Across those files, there will be no
+short sequences, no duplicate IDs and no duplicate sequences.
+
 ### 2. align the viral genomes
 
-```
-dncalign \
-    -i /data/genomes/sars-cov-2.fasta \
-    -y /data/cipres_appinfo.yml \
-    -o /data/alignments/sars-cov-2.aln.fasta \
-    -c 25
-```
+The next stage is to align the genomes. This follows a spread/gather model where the 
+files are submitted to the CIPRES server in batches of 20 files, with a process thread
+monitoring each of these. The files are returned with an *.aln suffix. Then, these 
+aligned chunks are profile aligned relative to one another:
+
+1. **alnspread** - scans `-i <indir>` for \*.fasta files, dispatches using `-y <YAML>`
+2. **alngather** - scans `-i <indir>` for \*.aln files, produces `-o <outfile>`
+
 
 <!--
 2. preprocess the reference genome using `script/refseqpp -v`, results ending up in `/data/genes/*`
@@ -55,11 +60,13 @@ dncalign \
 -->
 
 ## Building the Dockerfile
+
 The basic procedure is as follows, assuming you wish to build from source:
 
     docker build --tag naturalis/covid19-phylogeny .
 
 ## Entering into an interactive session
+
 To check the sanity of the environment, you can log into a shell thusly:
 
     docker run -v `pwd`/data:/data -it naturalis/covid19-phylogeny /bin/bash

@@ -10,7 +10,7 @@ use Getopt::Long;
 use Bio::Phylo::Util::Logger ':levels';
 
 # process command line arguments
-my $indir . '.';
+my $indir = '.';
 my $verbosity = INFO;
 my $outfile;
 GetOptions(
@@ -19,19 +19,23 @@ GetOptions(
 	'outfile=s' => \$outfile,
 );
 
-# default name
-if ( not $outfile ) {
-	$outfile = "${indir}/profile.aln";
-}
-
 # instantiate services
 Bio::Phylo::Util::Logger->new(
 	'-class'    => 'main',
 	'-level'    => $verbosity,
 );
 
+# default name
+if ( not $outfile ) {
+	$outfile = "${indir}/profile.aln";
+}
+INFO "writing to outfile $outfile";
+
 # do the profiles
-my @outfiles = <${indir}/*.aln>;
+my @outfiles = glob qq<${indir}/*.aln>;
+INFO "profile aligning ".scalar(@outfiles)." files";
+
+# start iterating
 copy( $outfiles[0], $outfile );
 for my $i ( 1 .. $#outfiles ) {
 	INFO "profile align step $i (adding $outfiles[$i])";

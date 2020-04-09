@@ -10,7 +10,7 @@ use Getopt::Long;
 use Bio::Phylo::Util::Logger ':levels';
 
 # process command line arguments
-my $indir;
+my $indir = '.';
 my $yml;
 my $threads = 20;
 my $verbosity = INFO;

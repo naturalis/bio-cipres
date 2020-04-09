@@ -20,7 +20,7 @@ PASSWORD: <pass>
 
 ## Orchestrating the workflow
 Workflow steps will be orchestrated by wrapping scripts that are inside a
-docker container (and which in turn are wrapping some executables). The
+docker container (and which in turn are wrapping some executables and web service calls). The
 outside wrapping will be [CWL](https://www.commonwl.org/user_guide/07-containers/index.html).
 Steps to wrap are:
 

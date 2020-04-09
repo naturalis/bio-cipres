@@ -1,4 +1,4 @@
-#!/us/bin/perl -X
+#!/usr/bin/perl -X
 use strict;
 use warnings;
 use Bio::SeqIO;
@@ -50,7 +50,7 @@ else {
 INFO "will write to ${outdir}/${base}.*";
 my $out = Bio::SeqIO->new(
 	'-format' => 'fasta',
-	'-file'   => ">${outdir}/${base}.${counter}",	
+	'-file'   => ">${outdir}/${base}.${counter}.fasta",	
 );
 
 # start chunking
@@ -60,7 +60,7 @@ while( my $seq = $in->next_seq ) {
 	if ( ( $counter++ % $chunks ) == 0 ) {
 		$out = Bio::SeqIO->new(
 			'-format' => 'fasta',
-			'-file'   => ">${outdir}/${base}.${counter}",	
+			'-file'   => ">${outdir}/${base}.${counter}.fasta",	
 		);
 		DEBUG "next chunk at seq $counter";
 	}

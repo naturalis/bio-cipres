@@ -1,0 +1,41 @@
+#!/us/bin/perl
+use strict;
+use warnings;
+use Bio::SeqIO;
+use File::Spec;
+use Getopt::Long;
+
+# process command line arguments
+my $chunks = 25;
+my $infile;
+my $outdir;
+GetOptions(
+	'infile=s' => \$infile,
+	'outdir=s' => \$outdir,
+	'chunks=i' => \$chunks,
+);
+
+# instantiate services
+my $counter = 1;
+my ( $v, $d, $base ) = File::Spec->splitpath( $infile );
+
+my $in = Bio::SeqIO->new(
+	'-format' => 'fasta',
+	'-file'   => $infile,
+);
+
+my $out = Bio::SeqIO->new(
+	'-format' => 'fasta',
+	'-file'   => ">${outdir}/${base}.${counter}",	
+);
+
+# start chunking
+while( my $seq = $in->next_seq ) {
+	$out->write_seq( $seq );
+	if ( ( $counter++ % $chunks ) == 0 ) {
+		$out = Bio::SeqIO->new(
+			'-format' => 'fasta',
+			'-file'   => ">${outdir}/${base}.${counter}",	
+		);
+	}
+}

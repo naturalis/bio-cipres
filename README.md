@@ -35,7 +35,9 @@ The first stage is preprocessing pipeline that does the following:
 
 Example usage:
 
-```
+```bash
+# each seq* util can be run in turn, reading/write to and from files,
+# but a pipe is less polluting and easier to understand anyway.
 gunzip -c /data/genomes/*.gz | seqfilter | sequniqid | sequniqseq | seqchunk -o /data/tmp
 ```
 
@@ -53,6 +55,13 @@ aligned chunks are profile aligned relative to one another:
 1. **alnspread** - scans `-i <indir>` for \*.fasta files, dispatches using `-y <YAML>`
 2. **alngather** - scans `-i <indir>` for \*.aln files, produces `-o <outfile>`
 
+Example usage:
+
+```
+# these steps cannot be piped
+alnspread -i /data/tmp -y /data/cipres_appinfo.yml
+alngather -i /data/tmp -o /data/alignments/profile.aln
+```
 
 <!--
 2. preprocess the reference genome using `script/refseqpp -v`, results ending up in `/data/genes/*`

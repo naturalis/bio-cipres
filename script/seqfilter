@@ -30,14 +30,14 @@ Bio::Phylo::Util::Logger->new(
 my $in;
 if ( $infile ) {
 	INFO "reading from infile $infile";
-	$in = Bio::SeqIO(
+	$in = Bio::SeqIO->new(
 		'-format' => 'fasta',
 		'-file'   => $infile,
 	);
 }
 else {
 	INFO "reading from STDIN";
-	$in = Bio::SeqIO(
+	$in = Bio::SeqIO->new(
 		'-format' => 'fasta',
 		'-fh'     => \*STDIN,
 	);
@@ -47,14 +47,14 @@ else {
 my $out;
 if ( $outfile ) {
 	INFO "writing to outfile $outfile";
-	$out = Bio::SeqIO(
+	$out = Bio::SeqIO->new(
 		'-format' => 'fasta',
 		'-file'   => ">$outfile",
 	);
 }
 else {
 	INFO "writing to STDOUT";
-	$out = Bio::SeqIO(
+	$out = Bio::SeqIO->new(
 		'-format' => 'fasta',
 		'-fh'     => \*STDOUT,
 	);

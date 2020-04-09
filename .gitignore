@@ -1,6 +1,6 @@
 cipres_appinfo.yml
 .DS_Store
-data/genomes/gisaid_cov2020_sequences.fasta.gz
+*gisaid_cov2020_sequences*
 
 !Build/
 .last_cover_stats

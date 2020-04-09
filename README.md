@@ -26,10 +26,10 @@ Steps to wrap are:
 ### 1. align the viral genomes
 
 ```
-script/dncalign \
-    -i data/genomes/sars-cov-2.fasta \
-    -y data/cipres_appinfo.yml \
-    -o data/alignments/sars-cov-2.aln.fasta \
+dncalign \
+    -i /data/genomes/sars-cov-2.fasta \
+    -y /data/cipres_appinfo.yml \
+    -o /data/alignments/sars-cov-2.aln.fasta \
     -c 25
 ```
 

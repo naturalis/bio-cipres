@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -X
 use strict;
 use warnings;
 use Bio::SeqIO;
@@ -21,16 +21,22 @@ GetOptions(
 	'verbose+'  => \$verbosity,
 	'length=i'  => \$length,
 );
+Bio::Phylo::Util::Logger->new( 
+	'-level' => $verbosity, 
+	'-class' => 'main' 
+);
 
 # open file handle or use STDIN
 my $in;
 if ( $infile ) {
+	INFO "reading from infile $infile";
 	$in = Bio::SeqIO(
 		'-format' => 'fasta',
 		'-file'   => $infile,
 	);
 }
 else {
+	INFO "reading from STDIN";
 	$in = Bio::SeqIO(
 		'-format' => 'fasta',
 		'-fh'     => \*STDIN,
@@ -40,12 +46,14 @@ else {
 # open file handle or STDOUT
 my $out;
 if ( $outfile ) {
+	INFO "writing to outfile $outfile";
 	$out = Bio::SeqIO(
 		'-format' => 'fasta',
 		'-file'   => ">$outfile",
 	);
 }
 else {
+	INFO "writing to STDOUT";
 	$out = Bio::SeqIO(
 		'-format' => 'fasta',
 		'-fh'     => \*STDOUT,
@@ -57,5 +65,6 @@ while( my $seq = $in->next_seq ) {
 	if ( length( $seq->seq ) >= $length ) {
 		$out->write_seq( $seq );
 	}
+	DEBUG "skipping short seq ".$seq->id;
 }
 

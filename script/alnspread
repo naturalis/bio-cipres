@@ -41,6 +41,7 @@ while( my $entry = readdir $dh ) {
 		my @threads  = map { sleep(3); threads->create( \&align, $_ ) } @files;
 		my @outfiles = map { $_->join } @threads;
 		DEBUG "aligned the following files:\n\t" . join("\n\t", @outfiles);
+		@files = ();
 	}
 }
 

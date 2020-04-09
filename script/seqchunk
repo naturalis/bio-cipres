@@ -1,0 +1,67 @@
+#!/usr/bin/perl -X
+use strict;
+use warnings;
+use Bio::SeqIO;
+use File::Spec;
+use Getopt::Long;
+use Bio::Phylo::Util::Logger ':levels';
+
+# process command line arguments
+my $chunks = 25;
+my $infile;
+my $outdir;
+my $verbosity = INFO;
+GetOptions(
+	'infile=s' => \$infile,
+	'outdir=s' => \$outdir,
+	'chunks=i' => \$chunks,
+	'verbose+' => \$verbosity,
+);
+
+Bio::Phylo::Util::Logger->new(
+	'-level' => $verbosity,
+	'-class' => 'main',
+);	
+
+# instantiate services
+my $counter = 1;
+
+# open file handle or STDIN
+my ( $in, $base );
+if ( $infile ) {
+	INFO "reading from infile $infile";
+	$in = Bio::SeqIO->new(
+		'-format' => 'fasta',
+		'-file'   => $infile,
+	);
+	my ( $v, $d, $bs ) = File::Spec->splitpath( $infile );
+	$base = $bs;
+}
+else {
+	INFO "reading from STDIN";
+	$in = Bio::SeqIO->new(
+		'-format' => 'fasta',
+		'-fh'     => \*STDIN,
+	);
+	$base = 'chunk';
+}
+
+# open first chunk's outfile handle
+INFO "will write to ${outdir}/${base}.*";
+my $out = Bio::SeqIO->new(
+	'-format' => 'fasta',
+	'-file'   => ">${outdir}/${base}.${counter}.fasta",	
+);
+
+# start chunking
+INFO "start chunking";
+while( my $seq = $in->next_seq ) {
+	$out->write_seq( $seq );
+	if ( ( $counter++ % $chunks ) == 0 ) {
+		$out = Bio::SeqIO->new(
+			'-format' => 'fasta',
+			'-file'   => ">${outdir}/${base}.${counter}.fasta",	
+		);
+		DEBUG "next chunk at seq $counter";
+	}
+}

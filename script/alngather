@@ -1,0 +1,42 @@
+#!/usr/bin/perl -X
+use strict;
+use threads;
+use warnings;
+use Bio::SeqIO;
+use File::Copy;
+use File::Spec;
+use File::Temp 'tempdir';
+use Getopt::Long;
+use Bio::Phylo::Util::Logger ':levels';
+
+# process command line arguments
+my $indir . '.';
+my $verbosity = INFO;
+my $outfile;
+GetOptions(
+	'indir=s'   => \$indir,
+	'verbose+'  => \$verbosity,	
+	'outfile=s' => \$outfile,
+);
+
+# default name
+if ( not $outfile ) {
+	$outfile = "${indir}/profile.aln";
+}
+
+# instantiate services
+Bio::Phylo::Util::Logger->new(
+	'-class'    => 'main',
+	'-level'    => $verbosity,
+);
+
+# do the profiles
+my @outfiles = <${indir}/*.aln>;
+copy( $outfiles[0], $outfile );
+for my $i ( 1 .. $#outfiles ) {
+	INFO "profile align step $i (adding $outfiles[$i])";
+	my $tmp = $outfile . '.tmp';
+	system( "muscle -quiet -profile -in1 $outfile -in2 $outfiles[$i] > $tmp" );
+	copy( $tmp, $outfile );
+	unlink( $tmp );
+}

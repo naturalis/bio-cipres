@@ -12,13 +12,13 @@ use Bio::Phylo::Util::Logger ':levels';
 # process command line arguments
 my $indir;
 my $yml;
-my $files = 20;
+my $threads = 20;
 my $verbosity = INFO;
 GetOptions(
-	'indir=s'  => \$indir,
-	'verbose+' => \$verbosity,	
-	'yml=s'    => \$yml,
-	'files=i'  => \$files,
+	'indir=s'    => \$indir,
+	'verbose+'   => \$verbosity,	
+	'yml=s'      => \$yml,
+	'threads=i'  => \$threads,
 );
 
 # instantiate services
@@ -34,10 +34,10 @@ while( my $entry = readdir $dh ) {
 
 	# skip over .. etc.
 	push @files, "${indir}/${entry}" if $entry =~ /.fasta$/;
-	if ( scalar(@files) == $files ) {
+	if ( scalar(@files) == $threads ) {
 	
 		# delegate the alignments across $files threads
-		INFO "launching alignment threads";
+		INFO "launching $threads alignment threads";
 		my @threads  = map { sleep(3); threads->create( \&align, $_ ) } @files;
 		my @outfiles = map { $_->join } @threads;
 		DEBUG "aligned the following files:\n\t" . join("\n\t", @outfiles);

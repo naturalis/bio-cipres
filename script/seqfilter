@@ -22,12 +22,6 @@ GetOptions(
 	'length=i'  => \$length,
 );
 
-# configure services
-my $log = Bio::Phylo::Util::Logger->new( 
-	'-level'    => $verbosity, 
-	'-class'    => 'main' 
-);
-
 my $in = Bio::SeqIO(
 	'-format'   => 'fasta',
 	'-file'     => $infile,

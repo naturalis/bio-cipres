@@ -5,6 +5,8 @@ cwlVersion: v1.1
 requirements:
   - class: DockerRequirement
     dockerPull: naturalis/covid19-phylogeny
+  - class: NetworkAccess
+    networkAccess: true
 baseCommand: dncalign
 arguments:
   - -i

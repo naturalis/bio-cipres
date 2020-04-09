@@ -22,15 +22,35 @@ GetOptions(
 	'length=i'  => \$length,
 );
 
-my $in = Bio::SeqIO(
-	'-format'   => 'fasta',
-	'-file'     => $infile,
-);
+# open file handle or use STDIN
+my $in;
+if ( $infile ) {
+	$in = Bio::SeqIO(
+		'-format' => 'fasta',
+		'-file'   => $infile,
+	);
+}
+else {
+	$in = Bio::SeqIO(
+		'-format' => 'fasta',
+		'-fh'     => \*STDIN,
+	);
+}
 
-my $out = Bio::SeqIO(
-	'-format'   => 'fasta',
-	'-file'     => ">$outfile",
-);
+# open file handle or STDOUT
+my $out;
+if ( $outfile ) {
+	$out = Bio::SeqIO(
+		'-format' => 'fasta',
+		'-file'   => ">$outfile",
+	);
+}
+else {
+	$out = Bio::SeqIO(
+		'-format' => 'fasta',
+		'-fh'     => \*STDOUT,
+	);
+}
 
 # start filtering
 while( my $seq = $in->next_seq ) {

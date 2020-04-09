@@ -19,10 +19,20 @@ GetOptions(
 my $counter = 1;
 my ( $v, $d, $base ) = File::Spec->splitpath( $infile );
 
-my $in = Bio::SeqIO->new(
-	'-format' => 'fasta',
-	'-file'   => $infile,
-);
+# open file handle or STDIN
+my $in;
+if ( $infile ) {
+	$in = Bio::SeqIO->new(
+		'-format' => 'fasta',
+		'-file'   => $infile,
+	);
+}
+else {
+	$in = Bio::SeqIO->new(
+		'-format' => 'fasta',
+		'-fh'     => \*STDIN,
+	);
+}
 
 my $out = Bio::SeqIO->new(
 	'-format' => 'fasta',

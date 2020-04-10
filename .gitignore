@@ -1,6 +1,7 @@
 cipres_appinfo.yml
 .DS_Store
 *gisaid_cov2020_sequences*
+*concatenated.fasta*
 
 !Build/
 .last_cover_stats

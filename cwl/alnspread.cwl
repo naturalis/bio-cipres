@@ -7,27 +7,23 @@ requirements:
     dockerPull: naturalis/covid19-phylogeny
   - class: NetworkAccess
     networkAccess: true
-baseCommand: dncalign
+  - class: InitialWorkDirRequirement
+    listing:
+      - entry: $(inputs.aln_dir)
+
+baseCommand: alnspread
 arguments:
   - -i
-  - $(inputs.fasta)
-  - -y
-  - $(inputs.yaml)
+  - $(inputs.aln_dir)
   - -o
-  - $(inputs.output)
-  - -c
-  - $(inputs.chunks)
+  - $(inputs.output_name)
 inputs:
-  - id: fasta
-    type: File
-  - id: yaml
-    type: File
-  - id: output
+  - id: aln_dir
+    type: Directory
+  - id: output_name
     type: string
-  - id: chunks
-    type: int
 outputs:
- - id: alignment
-   type: File
-   outputBinding:
-     glob: "$(inputs.output)"
+  - id: output_dir
+    type: File
+    outputBinding:
+      glob: "$(inputs.output_name)"

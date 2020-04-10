@@ -1,0 +1,10 @@
+sequences_gz:
+  - class: File
+    location: ../../data/genomes/sars-cov-2.fasta.gz
+  - class: File
+    location: ../../data/genomes/betacoronaviridae.fasta.gz
+  - class: File
+    location: ../../data/genomes/coronaviridae.fasta.gz
+outdir:
+  class: Directory
+  location: .

@@ -38,7 +38,8 @@ INFO "profile aligning ".scalar(@outfiles)." files";
 # start iterating
 copy( $outfiles[0], $outfile );
 for my $i ( 1 .. $#outfiles ) {
-	INFO "profile align step $i (adding $outfiles[$i])";
+	my $time = localtime();
+	INFO "[$time] profile align step $i (adding $outfiles[$i])";
 	my $tmp = $outfile . '.tmp';
 	system( "muscle -quiet -profile -in1 $outfile -in2 $outfiles[$i] > $tmp" );
 	copy( $tmp, $outfile );

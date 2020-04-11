@@ -11,7 +11,7 @@ requirements:
     listing:
       - entry: $(inputs.aln_dir)
         writable: true
-baseCommand: alnspread
+baseCommand: alngather
 arguments:
   - -i
   - $(inputs.aln_dir)

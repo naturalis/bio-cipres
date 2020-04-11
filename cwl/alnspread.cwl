@@ -10,7 +10,7 @@ requirements:
   - class: InitialWorkDirRequirement
     listing:
       - entry: $(inputs.fasta_dir)
-baseCommand: alngather
+baseCommand: alnspread
 arguments:
   - -i
   - $(inputs.fasta_dir)

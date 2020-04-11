@@ -99,7 +99,8 @@ curl \\
 	$URL/job/$CRA_USER \\
 	-F tool=MUSCLE  \\
 	-F input.infile_=\@$infile \\
-	-F metadata.statusEmail=true
+	-F metadata.statusEmail=true \\
+	-F vparam.runtime_=2.0
 CURL_COMMAND
 	DEBUG $command;
 	return $command;

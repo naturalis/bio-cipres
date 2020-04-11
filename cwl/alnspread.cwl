@@ -9,19 +9,18 @@ requirements:
     networkAccess: true
   - class: InitialWorkDirRequirement
     listing:
-      - entry: $(inputs.aln_dir)
-
-baseCommand: alnspread
+      - entry: $(inputs.fasta_dir)
+baseCommand: alngather
 arguments:
   - -i
-  - $(inputs.aln_dir)
-  - -o
-  - $(inputs.output_name)
+  - $(inputs.fasta_dir)
+  - -y
+  - $(inputs.yaml)
 inputs:
-  - id: aln_dir
+  - id: fasta_dir
     type: Directory
-  - id: output_name
-    type: string
+  - id: yaml
+    type: File
 outputs:
   - id: output_dir
     type: File

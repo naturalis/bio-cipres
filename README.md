@@ -1,5 +1,5 @@
 # covid19-phylogeny
-Dockerized workflow <!-- https://drive.google.com/file/d/1V1vR73uflUV383IgcHxkmu27TulWSu38/view?usp=sharing -->
+Workflow <!-- https://drive.google.com/file/d/1V1vR73uflUV383IgcHxkmu27TulWSu38/view?usp=sharing -->
 for phylogenetic analysis of [SARS-CoV-2 genomes](https://www.ncbi.nlm.nih.gov/nuccore/NC_045512)
 
 ## Prerequisites

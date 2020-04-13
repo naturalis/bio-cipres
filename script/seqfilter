@@ -9,7 +9,9 @@ use Bio::Phylo::Util::Logger ':levels';
 my $verbosity = INFO;
 my $infile;
 my $outfile;
-my $length = 25_000;
+
+# http://virological.org/t/a-dynamic-nomenclature-for-sars-cov-2-to-assist-genomic-epidemiology/458
+my $length = 29_000; 
 GetOptions(
 	'infile=s'  => \$infile,
 	'outfile=s' => \$outfile,

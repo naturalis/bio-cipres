@@ -41,7 +41,7 @@ for my $i ( 1 .. $#outfiles ) {
 	my $time = localtime();
 	INFO "[$time] profile align step $i (adding $outfiles[$i])";
 	my $tmp = $outfile . '.tmp';
-	system( "muscle -quiet -profile -in1 $outfile -in2 $outfiles[$i] > $tmp" );
+	system( "muscle  -maxiters 1 -diags -profile -in1 $outfile -in2 $outfiles[$i] > $tmp" );
 	copy( $tmp, $outfile );
 	unlink( $tmp );
 }

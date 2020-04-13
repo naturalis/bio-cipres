@@ -139,7 +139,6 @@ sub launch_job {
 			'jobstatus/selfUri/url' => sub { $status_url = $_->text }
 		}
 	)->parse($result);
-	INFO $status_url;
 	return $status_url;
 }
 
@@ -188,7 +187,7 @@ sub check_status {
 		}
 	)->parse($result);
 	my $time = localtime();
-	INFO "[$time] $infile completed: $status";
+	INFO "[$time] completed: $status";
 	return { 'completed' => $status, 'outfiles' => $outfiles };
 }
 

@@ -1,0 +1,7 @@
+data/*
+doc/*
+^Dockerfile$
+^MANIFEST\.skip$
+\.git/*
+\.gitignore
+\.DS_Store$

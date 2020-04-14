@@ -5,3 +5,5 @@ doc/*
 \.git/*
 \.gitignore
 \.DS_Store$
+^Makefile$
+blib/*

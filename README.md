@@ -17,6 +17,8 @@ CRA_USER: <user>
 PASSWORD: <pass>
 ```
 
+<!--
+
 ## Orchestrating the workflow
 Workflow steps will be orchestrated by wrapping scripts that are inside a
 docker container (and which in turn are wrapping some executables and web service calls). The
@@ -64,6 +66,8 @@ alngather -i /data/tmp -o /data/alignments/profile.aln
 
 This results in a large-ish, gapped FASTA file, e.g. ±13MB for the full NCBI genomes of
 SARS-CoV-2 at time of writing. This can ostensibly be consumed directly by IQ-Tree.
+
+-->
 
 <!--
 2. preprocess the reference genome using `script/refseqpp -v`, results ending up in `/data/genes/*`

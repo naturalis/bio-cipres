@@ -2,12 +2,12 @@
 Phylogenomic analysis on the CIPRES REST portal
 
 ## Prerequisites
-The workflow requires a [DEVELOPER account](https://www.phylo.org/restusers/register.action) 
+Usage of CIPRES requires a [DEVELOPER account](https://www.phylo.org/restusers/register.action) 
 (not a normal user account) for the CIPRES REST API (CRA), and a 
 [registration](https://www.phylo.org/restusers/createApplication!input.action) for the app 
-`corvid19_phylogeny`. Note the underscore in the name, which is different from the repo name 
-(sorry). With the account and app key, you can then populate a YAML file `data/cipres_appinfo.yml` 
-thusly, substituting the fields with pointy brackets with the appropriate values:
+`corvid19_phylogeny`.With the account and app key, you can then populate a YAML file 
+`data/cipres_appinfo.yml` thusly, substituting the fields with pointy brackets with the 
+appropriate values:
 
 ```yaml
 ---

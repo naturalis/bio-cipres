@@ -6,7 +6,7 @@ Usage of CIPRES requires a [DEVELOPER account](https://www.phylo.org/restusers/r
 (not a normal user account) for the CIPRES REST API (CRA), and a 
 [registration](https://www.phylo.org/restusers/createApplication!input.action) for the app 
 `corvid19_phylogeny`.With the account and app key, you can then populate a YAML file 
-`data/cipres_appinfo.yml` thusly, substituting the fields with pointy brackets with the 
+`cipres_appinfo.yml` thusly, substituting the fields with pointy brackets with the 
 appropriate values:
 
 ```yaml
@@ -28,6 +28,7 @@ cipresrun \
      -t MAFFT_XSEDE \
      -p vparam.anysymbol_=1 \
      -i <infile> \
+     -y cipres_appinfo.yml \
      -o output.mafft
 ```
 
@@ -52,6 +53,7 @@ cipresrun \
     -p vparam.num_bootreps_=1000 \
     -p vparam.specify_numparts_=1 \
     -i output.mafft \
+    -y cipres_appinfo.yml \    
     -o output.contree
 ```
 

@@ -6,10 +6,10 @@ use 5.008;
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-    NAME          => 'Bio::CIPRES',
+    NAME          => 'Bio::Phylo::CIPRES',
     AUTHOR        => 'Rutger Vos <rutgeraldo@gmail.com>',
-    VERSION_FROM  => 'lib/Bio/CIPRES.pm',
-    ABSTRACT_FROM => 'lib/Bio/CIPRES.pm',
+    VERSION_FROM  => 'lib/Bio/Phylo/CIPRES.pm',
+    ABSTRACT_FROM => 'lib/Bio/Phylo/CIPRES.pm',
     LICENSE       => 'perl',
     PREREQ_PM     => {
         'XML::Twig'  => '0',

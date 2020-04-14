@@ -1,3 +1,7 @@
+conda/*
+MANIFEST\.bak
+Makefile\.old
+\.gz
 data/*
 doc/*
 ^Dockerfile$

@@ -28,32 +28,20 @@ Bio::Phylo::CIPRES - Client for the CIPRES analysis portal
 	'info'    => $yml,
 	'tool'    => $tool,
 	'param'   => \%param,
-	'outfile' => \@outfile,	
-	'wd'      => $wd, 
+	'outfile' => \@outfile,
  );
- $client->run;
+ my %results = $client->run;
 
 =cut
 
 sub new {
 	my $class = shift;
-	my $self = bless { map { $_ => undef } qw[infile info tool param outfile wd] }, $class;
+	my $self = bless { map { $_ => undef } qw[infile info tool param outfile] }, $class;
 	my %args = @_;
 	while( my ( $property, $value ) = each %args ) {
 		$self->$property($value);
 	}
 	return $self;
-}
-
-sub info {
-	my ( $self, $yml ) = @_;
-	if ( $yml ) {
-		$self->{'info'} = LoadFile($yml);
-		return $self;
-	}
-	else {
-		return $self->{'info'};
-	}
 }
 
 sub run {
@@ -68,17 +56,18 @@ sub run {
 		my $status = $self->check_status( $status_url );
 		DEBUG Dumper( $status );
 		if ( $status->{'completed'} eq 'true' ) {
-			my $outfiles = $status->{'outfiles'};
-			my %results = $self->get_results( $outfiles );
-			
-			#write results
-			for my $name ( keys %results ) {
-				my $path = $self->wd . '/' . $name;
-				open my $fh, '>', $path or die "Couldn't open $path: $!";
-				print $fh $results{$name};
-				close $fh;
-			}
-			last POLL;
+			return $self->get_results( $status->{'outfiles'} );
+#			my $outfiles = $status->{'outfiles'};
+#			my %results = $self->get_results( $outfiles );
+#			
+#			# write results
+#			for my $name ( keys %results ) {
+#				my $path = $self->wd . '/' . $name;
+#				open my $fh, '>', $path or die "Couldn't open $path: $!";
+#				print $fh $results{$name};
+#				close $fh;
+#			}
+#			last POLL;
 		}
 		sleep 60;
 	}
@@ -133,7 +122,6 @@ sub get_results {
 	}	
 }
 
-# for $status_url, checks and returns terminalStage
 sub check_status {
 	my ( $self, $status_url ) = @_;
 	my $ua  = LWP::UserAgent->new;	
@@ -161,7 +149,6 @@ sub check_status {
 	}
 }
 
-# for $status_url, composes request to check status
 sub status_request {
 	my ( $self, $status_url ) = @_;
 

@@ -8,8 +8,7 @@ my %args = (
 	'infile'  => $0, 
 	'tool'    => 'MAFFT_XSEDE',
 	'param'   => { 'vparam.anysymbol_' => 1 },
-	'outfile' => [ 'output.mafft' ],	
-	'wd'      => '.', 
+	'outfile' => [ 'output.mafft' ],
 );
 
 my $obj = new_ok( 'Bio::Phylo::CIPRES' => [ %args ] );

@@ -1,3 +1,5 @@
+![](http://www.phylo.org/images/interface/logo_cipres.gif)
+
 # Bio::CIPRES
 Phylogenomic analysis on the CIPRES REST portal
 

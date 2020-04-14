@@ -70,15 +70,3 @@ SARS-CoV-2 at time of writing. This can ostensibly be consumed directly by IQ-Tr
 3. makeblastdb on the concatenated genomes in `data/genomes/\*.fasta`, e.g. 
     `makeblastdb -in gisaid_cov2020_sequences.fasta -dbtype nucl`
 -->
-
-## Building the Dockerfile
-
-The basic procedure is as follows, assuming you wish to build from source:
-
-    docker build --tag naturalis/covid19-phylogeny .
-
-## Entering into an interactive session
-
-To check the sanity of the environment, you can log into a shell thusly:
-
-    docker run -v `pwd`/data:/data -it naturalis/covid19-phylogeny /bin/bash

@@ -17,6 +17,44 @@ CRA_USER: <user>
 PASSWORD: <pass>
 ```
 
+## Example workflow
+
+### 1. Aligning sequences
+
+To align sequences in a FASTA file with [MAFFT](http://www.phylo.org/index.php/rest/mafft_xsede.html):
+
+```bash
+cipresrun \
+     -t MAFFT_XSEDE \
+     -p vparam.anysymbol_=1 \
+     -i <infile> \
+     -o output.mafft
+```
+
+- By adding the `-v` (or `--verbose`) flag, the XML returned by the server is shown. In the
+  last status check, this will show additional values for `-o`, e.g. to retrieve STDERR and
+  other outputs.
+- Most other parameters shown on the REST documentation page can also be used.
+- The output is written to a file with the same name is the output field (i.e. in this case
+  a file called `output.mafft`), which optionally ends up in a `-wd` working directory.
+
+### 2. Inferring trees
+
+To infer trees from an aligned FASTA file using [IQTree](http://www.phylo.org/index.php/rest/iqtree_xsede.html):
+
+```bash
+cipresrun \
+    -t IQTREE_XSEDE \
+    -p vparam.specify_runtype_=2 \
+    -p vparam.specify_dnamodel_=HKY \
+    -p vparam.bootstrap_type_=bb \
+    -p vparam.use_bnni_=1 \
+    -p vparam.num_bootreps_=1000 \
+    -p vparam.specify_numparts_=1 \
+    -i output.mafft \
+    -o output.contree
+```
+
 <!--
 
 ## Orchestrating the workflow

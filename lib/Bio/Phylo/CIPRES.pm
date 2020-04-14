@@ -6,13 +6,14 @@ use Carp;
 use XML::Twig;
 use MIME::Base64;
 use Data::Dumper;
-use HTTP::Request;
-use LWP::UserAgent;
 use YAML qw(LoadFile);
+use LWP::UserAgent;
+use HTTP::Request::Common;
 use Bio::Phylo::Util::Logger ':simple';
+use Bio::Phylo::Util::Exceptions 'throw';
 
 # package globals
-our $VERSION="0.0.1";
+use version; our $VERSION = qv("v0.0.2");
 our $AUTOLOAD;
 
 =head1 NAME
@@ -64,15 +65,11 @@ sub run {
 	
 	# poll results
 	POLL: while ( 1 ) {
-		my $status = check_status( $self->info, $status_url );
+		my $status = $self->check_status( $status_url );
 		DEBUG Dumper( $status );
 		if ( $status->{'completed'} eq 'true' ) {
 			my $outfiles = $status->{'outfiles'};
-			my %results = $self->get_results( 
-				'outfiles' => $outfiles, 
-				'info'     => $self->info,
-#				%args, 
-			);
+			my %results = $self->get_results( $outfiles );
 			
 			#write results
 			for my $name ( keys %results ) {
@@ -87,27 +84,128 @@ sub run {
 	}
 }
 
-sub launch_job {
-	my $self = shift;	
-	my $command = $self->launch_request;
+sub get_results {
+	my ( $self, $outfiles ) = @_;	
+	my $ua  = LWP::UserAgent->new;		
+	my $res = $ua->request( $self->status_request( $outfiles ) );
 
-	# run submission, parse result
-	my $status_url;	
-	my $result = `$command`;
-	DEBUG $result;
-	XML::Twig->new(
-		'twig_handlers' => {
-			'jobstatus/selfUri/url' => sub { $status_url = $_->text }
+	# request was successful
+	if ( $res->is_success ) {
+
+		my %outfile;
+		for my $name ( @{ $self->outfile } ) {
+			$outfile{ $name } = undef;
 		}
-	)->parse($result);
-	return $status_url;
+		
+		# parse result
+		my $location;
+		my $result = $res->decoded_content;
+		DEBUG $result;
+		XML::Twig->new(
+			'twig_handlers' => {
+				'results/jobfiles/jobfile' => sub {
+					my $node = $_;
+					my $name = $node->findvalue('filename');
+					if ( exists $outfile{ $name } ) {
+						$outfile{ $name } = $node->findvalue('downloadUri/url');
+					}
+					DEBUG $node->toString;
+				}
+			}
+		)->parse($result);
+		
+		# fetch output one by one
+		for my $name ( keys %outfile ) {
+			my $location = $outfile{$name};
+			my $output = $ua->request( $self->status_request( $location ) );
+			if ( $output->is_success ) {
+				$outfile{$name} = $output->decoded_content;
+			}
+			else {
+				ERROR $output->status_line;
+				croak;			
+			}
+		}
+		return %outfile;
+	}
+	else {
+		throw 'NetworkError' => $res->status_line;
+	}	
+}
+
+# for $status_url, checks and returns terminalStage
+sub check_status {
+	my ( $self, $status_url ) = @_;
+	my $ua  = LWP::UserAgent->new;	
+	my $res = $ua->request( $self->status_request( $status_url ) );
+	
+	# parse response
+	if ( $res->is_success ) {
+	
+		# post request, fetch result
+		my ( $status, $outfiles );
+		my $result = $res->decoded_content;
+		DEBUG $result;
+		XML::Twig->new(
+			'twig_handlers' => {
+				'jobstatus/resultsUri/url' => sub { $outfiles = $_->text },
+				'jobstatus/terminalStage'  => sub { $status   = $_->text }			
+			}
+		)->parse($result);
+		my $time = localtime();
+		INFO "[$time] completed: $status";
+		return { 'completed' => $status, 'outfiles' => $outfiles };
+	}
+	else {
+		throw 'NetworkError' => $res->status_line;
+	}
+}
+
+# for $status_url, composes request to check status
+sub status_request {
+	my ( $self, $status_url ) = @_;
+
+	# lookup credentials
+	my $user = $self->info->{'CRA_USER'};
+	my $pass = $self->info->{'PASSWORD'};
+	
+	# make request	
+	my $request = HTTP::Request::Common::GET(
+		$status_url,
+		'Authorization' => 'Basic ' . encode_base64("${user}:${pass}"),
+		'cipres-appkey' => $self->info->{'KEY'},
+	);
+	
+	DEBUG $request->as_string;
+	return $request;
+}
+
+sub launch_job {
+	my $self = shift;
+	my $ua   = LWP::UserAgent->new;
+	my $res  = $ua->request( $self->launch_request );
+
+	# process the response
+	if ( $res->is_success ) {
+
+		# run submission, parse result
+		my $status_url;	
+		my $result = $res->decoded_content;
+		DEBUG $result;
+		XML::Twig->new(
+			'twig_handlers' => {
+				'jobstatus/selfUri/url' => sub { $status_url = $_->text }
+			}
+		)->parse($result);
+		return $status_url;
+	}
+	else {
+		throw 'NetworkError' => $res->status_line;
+	}
 }
 
 sub launch_request {
 	my $self = shift;
-	
-	# populate basic user agent
-	my $ua = LWP::UserAgent->new;
 	
 	# build content
 	my %content = (
@@ -119,10 +217,14 @@ sub launch_request {
 		$content{$k} = $v;
 	}
 	
+	# lookup credentials
+	my $user = $self->info->{'CRA_USER'};
+	my $pass = $self->info->{'PASSWORD'};	
+	
 	# make request	
 	my $request = HTTP::Request::Common::POST(
 		$self->info->{'URL'},
-		'Authorization' => 'Basic ' . encode_base64('user:password'),
+		'Authorization' => 'Basic ' . encode_base64("${user}:${pass}"),
 		'Content_Type'  => 'form-data',
 		'cipres-appkey' => $self->info->{'KEY'},
 		'Content'       => [ %content ],
@@ -149,6 +251,10 @@ sub AUTOLOAD {
 		my $template = 'Can\'t locate object method "%s" via package "%s"';		
 		croak sprintf $template, $property, __PACKAGE__;
 	}
+}
+
+sub DESTROY {
+	# maybe kill process on server?
 }
 
 1;

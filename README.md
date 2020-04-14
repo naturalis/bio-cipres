@@ -17,6 +17,9 @@ CRA_USER: <user>
 PASSWORD: <pass>
 ```
 
+Additional prerequisites, which should be resolved automatically during your chosen installation
+procedure (conda, cpanm) are listed under the `PREREQ_PM` field in the file [Makefile.PL](Makefile.PL].
+
 ## Example workflow
 
 ### 1. Aligning sequences

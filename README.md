@@ -1,6 +1,6 @@
 ![](http://www.phylo.org/images/interface/logo_cipres.gif)
 
-# Bio::CIPRES
+# Bio::Phylo::CIPRES
 Phylogenomic analysis on the CIPRES REST portal
 
 ## Prerequisites
@@ -27,7 +27,7 @@ procedure (conda, cpanm) are listed under the `PREREQ_PM` field in the file [Mak
 ### CPANM
 
 ```bash
-$ cpanm Bio::CIPRES
+$ cpanm Bio::Phylo::CIPRES
 ```
 
 ## Example workflow

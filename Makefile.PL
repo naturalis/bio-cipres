@@ -27,10 +27,10 @@ WriteMakefile
          resources => {
              repository => {
                  type => 'git',
-                 url  => 'https://github.com/szabgab/perlmaven.com.git',
-                 web  => 'https://github.com/szabgab/perlmaveb.com',
+                 url  => 'https://github.com/naturalis/bio-cipres.git',
+                 web  => 'https://github.com/naturalis/bio-cipres',
              },
-             bugtracker => {web => 'https://github.com/szabgab/perlmaven.com/issues'},
+             bugtracker => {web => 'https://github.com/naturalis/bio-cipres/issues'},
          },
     }, 
 );

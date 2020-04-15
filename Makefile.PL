@@ -13,7 +13,7 @@ WriteMakefile
     LICENSE       => 'perl',
     PREREQ_PM     => {
         'XML::Twig'  => '0',
-	'YAML'       => '0',
+		'YAML'       => '0',
         'Bio::Phylo' => '0',	
     },
     TEST_REQUIRES => {

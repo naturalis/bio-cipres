@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use YAML qw(LoadFile);
-use Bio::Phylo::CIPRES;
+use Bio::Phylo::CIPRESREST;
 use Bio::Phylo::Util::Logger ':levels';
 
 # process command line arguments
@@ -44,7 +43,7 @@ GetOptions(
 
 Bio::Phylo::Util::Logger->new( 
 	'-level'    => $verbosity, 
-	'-class'    => [ 'main', 'Bio::Phylo::CIPRES' ],
+	'-class'    => [ 'main', 'Bio::Phylo::CIPRESREST' ],
 );
 
 my %res = Bio::Phylo::CIPRES->new( 
@@ -52,7 +51,7 @@ my %res = Bio::Phylo::CIPRES->new(
 	'tool'      => $tool,
 	'param'     => \%param,
 	'outfile'   => \@outfile,
-	'info'      => LoadFile($yml),	
+	'yml'       => $yml,	
 )->run;
 
 while ( my ( $name, $data ) = each %res ) {

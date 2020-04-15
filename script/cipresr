@@ -8,8 +8,8 @@ use Bio::Phylo::Util::Logger ':levels';
 
 # process command line arguments
 my $verbosity = INFO;
-my $yml       = $ENV{'DATADIR'} . '/cipres_appinfo.yml';
-my $wd        = $ENV{'DATADIR'};
+my $wd        = $ENV{'DATADIR'} || '.';
+my $yml       = $wd . '/cipres_appinfo.yml';
 my $tool; # MAFFT_XSEDE, IQTREE_XSEDE_1_01_01
 
 # extra parameter switches

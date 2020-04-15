@@ -46,7 +46,7 @@ Bio::Phylo::Util::Logger->new(
 	'-class'    => [ 'main', 'Bio::Phylo::CIPRESREST' ],
 );
 
-my %res = Bio::Phylo::CIPRES->new( 
+my %res = Bio::Phylo::CIPRESREST->new( 
 	'infile'    => $infile, 
 	'tool'      => $tool,
 	'param'     => \%param,

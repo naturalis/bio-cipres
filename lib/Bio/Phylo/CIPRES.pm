@@ -18,7 +18,7 @@ Bio::Phylo::CIPRES - Reusable components for CIPRES REST API access
 
 # global constants
 our $AUTOLOAD;
-use version; our $VERSION = qv("v0.1.0");
+use version; our $VERSION = qv("v0.1.1");
 my $REALM = "Cipres Authentication";
 my $PORT  = 443;
 

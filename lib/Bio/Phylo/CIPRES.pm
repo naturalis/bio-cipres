@@ -14,6 +14,63 @@ use Bio::Phylo::Util::Exceptions 'throw';
 
 Bio::Phylo::CIPRES - Reusable components for CIPRES REST API access
 
+=head1 SYNOPSIS
+
+ my %result = Bio::Phylo::CIPRES->new( 
+ 	'infile'    => 'infile.fasta',                # input data file
+ 	'tool'      => 'MAFFT_XSEDE',                 # tool to run
+ 	'param'     => { 'vparam.runtime_' => 7.5 },  # extra parameters, e.g. max runtime
+ 	'outfile'   => [ 'output.mafft' ],            # name of output data to fetch
+ 	'yml'       => 'config.yml',	              # client credentials
+ )->run;
+ 
+ while( my ( $name, $data ) = each %result ) {
+ 
+    # write data to output file
+ 	my $outfile = "${name}.fasta";
+ 	open my $fh, '>', $outfile or die $!;
+ 	print $fh $data;
+ } 
+
+=head1 DESCRIPTION
+
+The CyberInfrastructure for Phylogenetic RESearch (L<CIPRES|http://www.phylo.org>) is a 
+portal that provides access to phylogenetic analyses tools that can be run on the XSEDE
+HPC infrastructure. The portal has a web browser (point and click) interface, but also
+a web service interface that can be interacted with using RESTful commands. The basic
+workflow is as follows:
+
+=over
+
+=item * B<Launch a job>
+This is done by issuing an HTTP POST request that includes: 1) HTTP authentication (i.e.
+a user name and password that is registered to the realm), 2) uploading input data, 3)
+configuration options for the job. The result value is an XML document that reports the
+status. If all goes well, this will report that the job was launched successfully, and it
+gives a URL to visit to check up on the status.
+
+=item * B<Check job status>
+The job URL is visited periodically (at most once every 60 seconds, as per CIPRES policy).
+This is done using an authenticated GET request where the return value is an XML document
+that reports whether the job has finished. Once it is finished, the document will include
+a link to another document that lists the output data, which will be named (e.g. 
+C<output.mafft>) and which will be identifiable by a URL from whence the data can be
+retrieved.
+
+=item * B<Get results>
+Upon completion the results are fetched from their respective URLs. Under simple cases 
+this will be just a single file (e.g. an alignment), but there could be multiple file 
+types, as well as output from STDERR and STDOUT and various job status files that the
+server generated internally.
+
+=back
+
+This module hides the complexity of this interaction, so that entire analyses can be 
+run using only the commands shown in the synopsis section. The general idea is that 
+you can reuse this functionality in other modules and scripts. It is also does the heavy
+lifting for the L<cipresrun> executable that allows you to run analyses from terminal
+interfaces.
+
 =cut
 
 # global constants
@@ -21,6 +78,18 @@ our $AUTOLOAD;
 use version; our $VERSION = qv("v0.1.2");
 my $REALM = "Cipres Authentication";
 my $PORT  = 443;
+
+=head1 METHODS
+
+=head2 new()
+
+The constructor takes the arguments as shown in the SYNOPSIS section. The arguments are
+a direct translation of the named arguments (not option flags) that are passed on the 
+command line to the L<cipresrun>  program. The value of the C<outfile> argument, which
+can be used multiple times, is an array reference. The value of the C<param> argument,
+which is key/value pairs that can be provided multiple times, is a hash reference.
+
+=cut
 
 sub new {
 	my $class  = shift;
@@ -33,6 +102,13 @@ sub new {
 	return $self;
 }
 
+=head2 run()
+
+Runs the entire analysis using the configuration as provided to the constructor. Returns
+key value pairs where each key is an C<outfile> and each file is the data as text.
+
+=cut
+
 sub run {
 	my $self = shift;
 	my $url  = $self->launch_job;
@@ -44,6 +120,13 @@ sub run {
 		}
 	}
 }
+
+=head2 launch_job()
+
+Is called by C<run()>. Launches the analysis and returns the status URL at which progress
+can be inspected.
+
+=cut
 
 sub launch_job {
 	my $self = shift;
@@ -71,6 +154,13 @@ sub launch_job {
 	}
 }
 
+=head2 check_status()
+
+Is called by C<run()>. Consults the status URL. Returns a hash reference whose values
+specify whether the job is done, and if so, where the results can be fetched.
+
+=cut
+
 sub check_status {
 	my ( $self, $url ) = @_;
 	INFO "Going to check status for $url";
@@ -97,6 +187,12 @@ sub check_status {
 		throw 'NetworkError' => $res->status_line;	
 	}	
 }
+
+=head2 get_results()
+
+Is called by C<run()>. Returns the named result data as a hash.
+
+=cut
 
 sub get_results {
 	my ( $self, $url ) = @_;	
@@ -136,6 +232,13 @@ sub get_results {
 	}
 }
 
+=head2 yml()
+
+Given the location the config.yml file, populates properties of the object with the
+right parameter values to authenticate the client with the CIPRES server.
+
+=cut
+
 sub yml {
 	my ( $self, $yml ) = @_;
 	INFO "Reading YAML file $yml";	
@@ -146,6 +249,12 @@ sub yml {
 	$self->url( $info->{'URL'} );
 	$self->cipres_appkey( $info->{'KEY'} );
 }
+
+=head2 ua()
+
+Instantiates an authenticated L<LWP::UserAgent> object.
+
+=cut
 
 sub ua {
 	my $self = shift;
@@ -163,6 +272,13 @@ sub ua {
 	return $ua;
 }
 
+=head2 payload()
+
+Constructs the HTTP POST payload for launching jobs. Returns an array reference of
+key/value pairs.
+
+=cut
+
 sub payload {
 	my $self = shift;
 	INFO "Composing payload for ".$self->tool." with infile ".$self->infile;
@@ -175,6 +291,13 @@ sub payload {
 	DEBUG Dumper($load);
 	return $load;
 }
+
+=head2 headers()
+
+Constructs the HTTP headers to identify the client app and, optionally, to tell the
+server that multipart/form-data is being attached as a payload.
+
+=cut
 
 sub headers {
 	my ( $self, $form ) = @_;
@@ -213,5 +336,12 @@ sub AUTOLOAD {
 sub DESTROY {
 	# maybe kill and delete process on server?
 }
+
+=head1 SEE ALSO
+
+Also consult the documentation for L<cipresrun>, which shows the usage of this module
+from the command line.
+
+=cut
 
 1;

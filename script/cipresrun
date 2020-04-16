@@ -26,8 +26,8 @@ my %param     = ( 'vparam.runtime_' => 7.5 );
 # vparam.specify_numparts_=1 (partitions)
 
 # outfile name(s)
-my @outfile;
-# for MAFFT: output.mafft
+my %outfile;
+# for MAFFT: output.mafft => /path/to/outfile.fasta
 
 # some fasta file in either case
 my $infile;
@@ -36,7 +36,7 @@ GetOptions(
 	'infile=s'  => \$infile,
 	'yaml=s'    => \$yml,
 	'verbose+'  => \$verbosity,
-	'outfile=s' => \@outfile,
+	'outfile=s' => \%outfile,
 	'tool=s'    => \$tool,
 	'param=s'   => \%param,
 	'wd=s'      => \$wd,
@@ -49,18 +49,17 @@ Bio::Phylo::Util::Logger->new(
 	'-class'    => [ 'main', 'Bio::Phylo::CIPRES' ],
 );
 
-my %res = Bio::Phylo::CIPRES->new( 
+my $cipres = Bio::Phylo::CIPRES->new( 
 	'infile'    => $infile, 
 	'tool'      => $tool,
 	'param'     => \%param,
-	'outfile'   => \@outfile,
+	'outfile'   => \%outfile,
 	'yml'       => $yml,	
-)->run;
+);
 
-while ( my ( $name, $data ) = each %res ) {
-	open my $fh, '>', "${wd}/${name}" or die "Can't open ${wd}/${name}: $!";
-	print $fh $data;
-}
+my $url = $cipres->run;
+
+$cipres->clean_job( $url );
 
 =pod
 
@@ -75,7 +74,7 @@ cipresrun - command line interface to the CIPRES analysis portal
      -p <paramname=paramvalue> [-p <paramname=paramvalue>] \     
      -i <infile> \
      -y <config.yml> \
-     -o <outfile> [-o <outfile>] \
+     -o <out.name=/out/path> [-o <out.name=/out/path>] \
      -w <workdirectory> \
      [-v] [-h] [--manpage]
 
@@ -118,13 +117,15 @@ can be used multiple times.
 
 Path to an input file to analyze, e.g. an unaligned FASTA file.
 
-=item C<-o filename> or C<--outfile=filename>
+=item C<-o key=value> or C<--key=value>
 
-This is the name of a specific output type that CIPRES generates. In other words, this is
-B<not> a free form name for you to choose. It's one of the multiple outputs that the
+This is the name of a specific output type that CIPRES generates followed by the location
+where to write that output to file on the client side. In other words, this is B<not> a 
+free form name for you to choose. It's one of the multiple outputs that the
 analysis can produce. For example, the alignment produced by MAFFT is called 
 C<output.mafft>. That is the name you need to specify here if you want that output 
-returned. You can also fetch things such as C<STDERR>, C<STDOUT>, and so on. Which outputs
+returned, followed by where you want this to be written, e.g. /home/user/result.fasta. 
+You can also fetch things such as C<STDERR>, C<STDOUT>, and so on. Which outputs
 are produced by a specific tool can (to the best of my knowledge) only be figured out by
 running this program with the C<-v> (verbose) flag and then consulting the XML that is
 produced by the final step. I.e. this is not well documented by CIPRES.

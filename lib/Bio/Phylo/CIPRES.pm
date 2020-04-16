@@ -17,11 +17,11 @@ Bio::Phylo::CIPRES - Reusable components for CIPRES REST API access
 =head1 SYNOPSIS
 
  my %result = Bio::Phylo::CIPRES->new( 
- 	'infile'    => 'infile.fasta',                # input data file
- 	'tool'      => 'MAFFT_XSEDE',                 # tool to run
- 	'param'     => { 'vparam.runtime_' => 7.5 },  # extra parameters, e.g. max runtime
- 	'outfile'   => [ 'output.mafft' ],            # name of output data to fetch
- 	'yml'       => 'config.yml',	              # client credentials
+ 	'infile'    => 'infile.fasta',                 # input data file
+ 	'tool'      => 'MAFFT_XSEDE',                  # tool to run
+ 	'param'     => { 'vparam.runtime_' => 7.5 },   # extra parameters, e.g. max runtime
+ 	'outfile'   => { 'output.mafft' => 'out.fa' }, # name of output data to fetch
+ 	'yml'       => 'config.yml',	               # client credentials
  )->run;
  
  while( my ( $name, $data ) = each %result ) {
@@ -85,9 +85,8 @@ my $PORT  = 443;
 
 The constructor takes the arguments as shown in the SYNOPSIS section. The arguments are
 a direct translation of the named arguments (not option flags) that are passed on the 
-command line to the L<cipresrun>  program. The value of the C<outfile> argument, which
-can be used multiple times, is an array reference. The value of the C<param> argument,
-which is key/value pairs that can be provided multiple times, is a hash reference.
+command line to the L<cipresrun>  program. The value of the C<outfile> argument, and that
+of the C<param> argument, is both a hash reference.
 
 =cut
 
@@ -116,7 +115,8 @@ sub run {
 		sleep(60);
 		my $status = $self->check_status($url);
 		if ( $status->{'completed'} eq 'true' ) {
-			return $self->get_results( $status->{'outfiles'} );
+			$self->get_results( $status->{'outfiles'} );
+			return $url;
 		}
 	}
 }
@@ -196,10 +196,11 @@ Is called by C<run()>. Returns the named result data as a hash.
 
 sub get_results {
 	my ( $self, $url ) = @_;	
-	my %out  = map { $_ => undef } @{ $self->outfile }; 
+	my %out  = %{ $self->outfile }; 
 	my $ua   = $self->ua;
 	my @head = $self->headers(0);
 	my $res  = $ua->get( $url, @head );
+	my %out_url;
 	if ( $res->is_success ) {
 		my $result = $res->decoded_content;
 		DEBUG $result;
@@ -208,23 +209,23 @@ sub get_results {
 				'results/jobfiles/jobfile' => sub {
 					my $node = $_;
 					my $name = $node->findvalue('filename');
-					if ( exists $out{ $name } ) {
-						$out{ $name } = $node->findvalue('downloadUri/url');
+					if ( $out{ $name } ) {
+						$out_url{ $name } = $node->findvalue('downloadUri/url');
 					}
 					DEBUG $node->toString;
 				}
 			}
 		)->parse($result);
 		for my $name ( keys %out ) {
-			my $location = $out{$name};
+			my $location = $out_url{ $name };
 			$res = $ua->get( $location, @head );
 			if ( $res->is_success ) {
-				$out{$name} = $res->decoded_content;
+				open my $fh, '>', $out{ $name } or die $!;
+				print $fh $res->decoded_content;
 			}
 			else {
 				throw 'NetworkError' => $res->status_line;	
 			}
-			return %out;
 		}		
 	}
 	else {
@@ -262,7 +263,7 @@ sub ua {
 	my $user = $self->user;
 	my $pass = $self->pass;
 	my $ua   = LWP::UserAgent->new;
-	INFO "Instantiating UserAgent $host:$PORT / $REALM / $user:****";
+	DEBUG "Instantiating UserAgent $host:$PORT / $REALM / $user:****";
 	$ua->ssl_opts( 'verify_hostname' => 0 );
 	$ua->credentials(
 		$host . ':' . $PORT,
@@ -281,7 +282,7 @@ key/value pairs.
 
 sub payload {
 	my $self = shift;
-	INFO "Composing payload for ".$self->tool." with infile ".$self->infile;
+	DEBUG "Composing payload for ".$self->tool." with infile ".$self->infile;
 	my $load = [
 		'tool'                 => $self->tool,
 		'input.infile_'        => [ $self->infile ],
@@ -302,16 +303,31 @@ server that multipart/form-data is being attached as a payload.
 sub headers {
 	my ( $self, $form ) = @_;
 	if ( $form ) {	
-		INFO "Composing POST / form-data headers";	
+		DEBUG "Composing POST / form-data headers";	
 		return (
 			'Content_Type'  => 'form-data',
 			'cipres-appkey' => $self->cipres_appkey,
 		);
 	}
 	else {
-		INFO "Composing GET headers";
+		DEBUG "Composing GET headers";
 		return ( 'cipres-appkey' => $self->cipres_appkey );
 	}
+}
+
+=head2 clean_job()
+
+Cleans up the job on the server that is identified by the provided input URL (i.e. the
+status URL, which is the return value of the run() method).
+
+=cut
+
+sub clean_job {
+	my ( $self, $url ) = @_;
+	my $ua   = $self->ua;
+	my @head = $self->headers(0);
+	INFO "Going to clean job $url";
+	$ua->delete( $url, @head );
 }
 
 sub AUTOLOAD {

@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use Bio::Phylo::CIPRESREST;
+use Bio::Phylo::CIPRES;
 use Bio::Phylo::Util::Logger ':levels';
 
 # process command line arguments
@@ -43,10 +43,10 @@ GetOptions(
 
 Bio::Phylo::Util::Logger->new( 
 	'-level'    => $verbosity, 
-	'-class'    => [ 'main', 'Bio::Phylo::CIPRESREST' ],
+	'-class'    => [ 'main', 'Bio::Phylo::CIPRES' ],
 );
 
-my %res = Bio::Phylo::CIPRESREST->new( 
+my %res = Bio::Phylo::CIPRES->new( 
 	'infile'    => $infile, 
 	'tool'      => $tool,
 	'param'     => \%param,

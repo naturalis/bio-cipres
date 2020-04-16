@@ -4,40 +4,23 @@ use warnings;
 use URI;
 use Carp;
 use XML::Twig;
-use MIME::Base64;
 use Data::Dumper;
-use YAML qw(LoadFile);
 use LWP::UserAgent;
-use HTTP::Request::Common;
+use YAML qw(LoadFile);
 use Bio::Phylo::Util::Logger ':simple';
 use Bio::Phylo::Util::Exceptions 'throw';
 
-# package globals
-use version; our $VERSION = qv("v0.0.2");
+# global constants
 our $AUTOLOAD;
-
-=head1 NAME
-
-Bio::Phylo::CIPRES - Client for the CIPRES analysis portal
-
-=head1 SYNOPSIS
-
- use Bio::Phylo::CIPRES;
- my $client = Bio::Phylo::CIPRES->new(
-	'infile'  => $infile, 
-	'info'    => $yml,
-	'tool'    => $tool,
-	'param'   => \%param,
-	'outfile' => \@outfile,
- );
- my %results = $client->run;
-
-=cut
+use version; our $VERSION = qv("v0.1.0");
+my $REALM = "Cipres Authentication";
+my $PORT  = 443;
 
 sub new {
-	my $class = shift;
-	my $self = bless { map { $_ => undef } qw[infile info tool param outfile] }, $class;
-	my %args = @_;
+	my $class  = shift;
+	my @fields = qw[infile tool param outfile url user pass cipres_appkey];
+	my $self   = bless { map { $_ => undef } @fields }, $class;
+	my %args   = @_;
 	while( my ( $property, $value ) = each %args ) {
 		$self->$property($value);
 	}
@@ -46,88 +29,48 @@ sub new {
 
 sub run {
 	my $self = shift;
-	
-	# launch the job
-	INFO "Going to launch " . $self->tool;
-	my $status_url = $self->launch_job;
-	
-	# poll results
-	POLL: while ( 1 ) {
-		my $status = $self->check_status( $status_url );
-		DEBUG Dumper( $status );
+	my $url  = $self->launch_job;
+	while(1) {
+		sleep(60);
+		my $status = $self->check_status($url);
 		if ( $status->{'completed'} eq 'true' ) {
 			return $self->get_results( $status->{'outfiles'} );
-#			my $outfiles = $status->{'outfiles'};
-#			my %results = $self->get_results( $outfiles );
-#			
-#			# write results
-#			for my $name ( keys %results ) {
-#				my $path = $self->wd . '/' . $name;
-#				open my $fh, '>', $path or die "Couldn't open $path: $!";
-#				print $fh $results{$name};
-#				close $fh;
-#			}
-#			last POLL;
 		}
-		sleep 60;
 	}
 }
 
-sub get_results {
-	my ( $self, $outfiles ) = @_;	
-	my $ua  = LWP::UserAgent->new;		
-	my $res = $ua->request( $self->status_request( $outfiles ) );
-
-	# request was successful
+sub launch_job {
+	my $self = shift;
+	my $ua   = $self->ua;
+	my $url  = $self->url;
+	my $load = $self->payload;
+	my @head = $self->headers(1);
+	my $res  = $ua->post( $url . '/job/' . $self->user, $load, @head );
 	if ( $res->is_success ) {
-
-		my %outfile;
-		for my $name ( @{ $self->outfile } ) {
-			$outfile{ $name } = undef;
-		}
-		
-		# parse result
-		my $location;
+	
+		# run submission, parse result
+		my $status_url;	
 		my $result = $res->decoded_content;
 		DEBUG $result;
 		XML::Twig->new(
 			'twig_handlers' => {
-				'results/jobfiles/jobfile' => sub {
-					my $node = $_;
-					my $name = $node->findvalue('filename');
-					if ( exists $outfile{ $name } ) {
-						$outfile{ $name } = $node->findvalue('downloadUri/url');
-					}
-					DEBUG $node->toString;
-				}
+				'jobstatus/selfUri/url' => sub { $status_url = $_->text }
 			}
 		)->parse($result);
-		
-		# fetch output one by one
-		for my $name ( keys %outfile ) {
-			my $location = $outfile{$name};
-			my $output = $ua->request( $self->status_request( $location ) );
-			if ( $output->is_success ) {
-				$outfile{$name} = $output->decoded_content;
-			}
-			else {
-				ERROR $output->status_line;
-				croak;			
-			}
-		}
-		return %outfile;
+		INFO "Job launched at $status_url";
+		return $status_url;	
 	}
 	else {
-		throw 'NetworkError' => $res->status_line;
-	}	
+		throw 'NetworkError' => $res->status_line;	
+	}
 }
 
 sub check_status {
-	my ( $self, $status_url ) = @_;
-	my $ua  = LWP::UserAgent->new;	
-	my $res = $ua->request( $self->status_request( $status_url ) );
-	
-	# parse response
+	my ( $self, $url ) = @_;
+	INFO "Going to check status for $url";
+	my $ua   = $self->ua;
+	my @head = $self->headers(0);
+	my $res  = $ua->get( $url, @head );
 	if ( $res->is_success ) {
 	
 		# post request, fetch result
@@ -142,83 +85,104 @@ sub check_status {
 		)->parse($result);
 		my $time = localtime();
 		INFO "[$time] completed: $status";
-		return { 'completed' => $status, 'outfiles' => $outfiles };
+		return { 'completed' => $status, 'outfiles' => $outfiles };	
 	}
 	else {
-		throw 'NetworkError' => $res->status_line;
-	}
+		throw 'NetworkError' => $res->status_line;	
+	}	
 }
 
-sub status_request {
-	my ( $self, $status_url ) = @_;
-
-	# lookup credentials
-	my $user = $self->info->{'CRA_USER'};
-	my $pass = $self->info->{'PASSWORD'};
-	
-	# make request	
-	my $request = HTTP::Request::Common::GET(
-		$status_url,
-		'Authorization' => 'Basic ' . encode_base64("${user}:${pass}"),
-		'cipres-appkey' => $self->info->{'KEY'},
-	);
-	
-	DEBUG $request->as_string;
-	return $request;
-}
-
-sub launch_job {
-	my $self = shift;
-	my $ua   = LWP::UserAgent->new;
-	my $res  = $ua->request( $self->launch_request );
-
-	# process the response
+sub get_results {
+	my ( $self, $url ) = @_;	
+	my %out  = map { $_ => undef } @{ $self->outfile }; 
+	my $ua   = $self->ua;
+	my @head = $self->headers(0);
+	my $res  = $ua->get( $url, @head );
 	if ( $res->is_success ) {
-
-		# run submission, parse result
-		my $status_url;	
 		my $result = $res->decoded_content;
 		DEBUG $result;
 		XML::Twig->new(
 			'twig_handlers' => {
-				'jobstatus/selfUri/url' => sub { $status_url = $_->text }
+				'results/jobfiles/jobfile' => sub {
+					my $node = $_;
+					my $name = $node->findvalue('filename');
+					if ( exists $out{ $name } ) {
+						$out{ $name } = $node->findvalue('downloadUri/url');
+					}
+					DEBUG $node->toString;
+				}
 			}
 		)->parse($result);
-		return $status_url;
+		for my $name ( keys %out ) {
+			my $location = $out{$name};
+			$res = $ua->get( $location, @head );
+			if ( $res->is_success ) {
+				$out{$name} = $res->decoded_content;
+			}
+			else {
+				throw 'NetworkError' => $res->status_line;	
+			}
+			return %out;
+		}		
 	}
 	else {
-		throw 'NetworkError' => $res->status_line;
+		throw 'NetworkError' => $res->status_line;	
 	}
 }
 
-sub launch_request {
+sub yml {
+	my ( $self, $yml ) = @_;
+	INFO "Reading YAML file $yml";	
+	my $info = LoadFile($yml);
+	DEBUG "Parsed " . Dumper( $info );
+	$self->user( $info->{'CRA_USER'} );
+	$self->pass( $info->{'PASSWORD'} );
+	$self->url( $info->{'URL'} );
+	$self->cipres_appkey( $info->{'KEY'} );
+}
+
+sub ua {
 	my $self = shift;
-	
-	# build content
-	my %content = (
-		'input.infile'         => [ $self->infile ],
+	my $host = URI->new( $self->url )->host();
+	my $user = $self->user;
+	my $pass = $self->pass;
+	my $ua   = LWP::UserAgent->new;
+	INFO "Instantiating UserAgent $host:$PORT / $REALM / $user:****";
+	$ua->ssl_opts( 'verify_hostname' => 0 );
+	$ua->credentials(
+		$host . ':' . $PORT,
+		$REALM,
+		$user => $pass
+	);
+	return $ua;
+}
+
+sub payload {
+	my $self = shift;
+	INFO "Composing payload for ".$self->tool." with infile ".$self->infile;
+	my $load = [
 		'tool'                 => $self->tool,
+		'input.infile_'        => [ $self->infile ],
 		'metadata.statusEmail' => 'true',
-	);
-	while( my ($k,$v) = each %{ $self->param || {} } ) {
-		$content{$k} = $v;
+		%{ $self->param }
+	];
+	DEBUG Dumper($load);
+	return $load;
+}
+
+sub headers {
+	my ( $self, $form ) = @_;
+	if ( $form ) {	
+		INFO "Composing POST / form-data headers";	
+		return (
+			'Content_Type'  => 'form-data',
+			'cipres-appkey' => $self->cipres_appkey,
+		);
 	}
-	
-	# lookup credentials
-	my $user = $self->info->{'CRA_USER'};
-	my $pass = $self->info->{'PASSWORD'};	
-	
-	# make request	
-	my $request = HTTP::Request::Common::POST(
-		$self->info->{'URL'},
-		'Authorization' => 'Basic ' . encode_base64("${user}:${pass}"),
-		'Content_Type'  => 'form-data',
-		'cipres-appkey' => $self->info->{'KEY'},
-		'Content'       => [ %content ],
-	);
-	
-	DEBUG $request->as_string;
-	return $request;
+	else {
+		INFO "Composing GET headers";
+		return ( 'cipres-appkey' => $self->cipres_appkey );
+	}
 }
 
 sub AUTOLOAD {
@@ -241,8 +205,7 @@ sub AUTOLOAD {
 }
 
 sub DESTROY {
-	# maybe kill process on server?
+	# maybe kill and delete process on server?
 }
 
 1;
-

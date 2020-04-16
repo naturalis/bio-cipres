@@ -10,8 +10,6 @@ source:
   url: https://cpan.metacpan.org/authors/id/R/RV/RVOSA/Bio-Phylo-CIPRES-v0.1.2.tar.gz
   sha256: {{ sha256 }}
 
-# If this is a new build for the same version, increment the build
-# number. If you do not include this key, it defaults to 0.
 build:
   number: 0
 
@@ -22,7 +20,6 @@ requirements:
     - perl-bio-phylo
     - perl-extutils-makemaker
     - perl-xml-twig
-    #- perl-test-more
 
   run:
     - perl
@@ -31,18 +28,10 @@ requirements:
     - perl-xml-twig
 
 test:
-  # Perl 'use' tests
   imports:
     - Bio::Phylo::CIPRES
-
-  # You can also put a file called run_test.pl (or run_test.py) in the recipe
-  # that will be run at test time.
 
 about:
   home: http://metacpan.org/pod/Bio::Phylo::CIPRES
   license: perl_5
   summary: 'Reusable components for CIPRES REST API access'
-
-# See
-# https://docs.conda.io/projects/conda-build for
-# more information about meta.yaml

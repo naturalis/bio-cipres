@@ -36,7 +36,6 @@ sub run {
 		if ( $status->{'completed'} eq 'true' ) {
 			return $self->get_results( $status->{'outfiles'} );
 		}
-		INFO "completed: ".$status->{'completed'};
 	}
 }
 
@@ -46,7 +45,7 @@ sub launch_job {
 	my $url  = $self->url;
 	my $load = $self->payload;
 	my @head = $self->headers(1);
-	my $res  = $ua->post( $url, $load, @head );
+	my $res  = $ua->post( $url . '/job/' . $self->user, $load, @head );
 	if ( $res->is_success ) {
 	
 		# run submission, parse result
@@ -58,18 +57,22 @@ sub launch_job {
 				'jobstatus/selfUri/url' => sub { $status_url = $_->text }
 			}
 		)->parse($result);
+		INFO "Job launched at $status_url";
 		return $status_url;	
 	}
 	else {
+		ERROR Dumper($res);
+		ERROR $res->decoded_content;
 		throw 'NetworkError' => $res->status_line;	
 	}
 }
 
 sub check_status {
 	my ( $self, $url ) = @_;
+	INFO "Going to check status for $url";
 	my $ua   = $self->ua;
 	my @head = $self->headers(0);
-	my $res  = $ua->post( $url, @head );
+	my $res  = $ua->get( $url, @head );
 	if ( $res->is_success ) {
 	
 		# post request, fetch result
@@ -92,10 +95,9 @@ sub check_status {
 }
 
 sub get_results {
-	my ( $self, $outfiles ) = @_;	
-	my %out  = map { $_ => undef } @$outfiles; 
+	my ( $self, $url ) = @_;	
+	my %out  = map { $_ => undef } @{ $self->outfile }; 
 	my $ua   = $self->ua;
-	my $url  = $self->url;
 	my @head = $self->headers(0);
 	my $res  = $ua->get( $url, @head );
 	if ( $res->is_success ) {

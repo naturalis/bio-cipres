@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use Pod::Usage;
 use Getopt::Long;
 use Bio::Phylo::CIPRES;
 use Bio::Phylo::Util::Logger ':levels';
@@ -26,7 +27,7 @@ my %param     = ( 'vparam.runtime_' => 7.5 );
 
 # outfile name(s)
 my @outfile;
-# for MAFFT: output.fasta
+# for MAFFT: output.mafft
 
 # some fasta file in either case
 my $infile;
@@ -39,6 +40,8 @@ GetOptions(
 	'tool=s'    => \$tool,
 	'param=s'   => \%param,
 	'wd=s'      => \$wd,
+	'help'      => sub { pod2usage( '-verbose' => 0 ) },
+	'manpage'   => sub { pod2usage( '-verbose' => 2 ) },
 );
 
 Bio::Phylo::Util::Logger->new( 
@@ -58,3 +61,117 @@ while ( my ( $name, $data ) = each %res ) {
 	open my $fh, '>', "${wd}/${name}" or die "Can't open ${wd}/${name}: $!";
 	print $fh $data;
 }
+
+=pod
+
+=head1 NAME
+
+cipresrun - command line interface to the CIPRES analysis portal
+
+=head1 SYNOPSIS
+
+ cipresrun \
+     -t <tool> \
+     -p <paramname=paramvalue> [-p <paramname=paramvalue>] \     
+     -i <infile> \
+     -y <config.yml> \
+     -o <outfile> [-o <outfile>] \
+     -w <workdirectory> \
+     [-v] [-h] [--manpage]
+
+=head1 OPTIONS AND ARGUMENTS
+
+=over
+
+=item C<-v> or C<--verbose>
+
+Increases the verbosity of the process. This is useful to see what is being returned by 
+the server, for example to figure out what your tool is producing as output files. A good 
+approach is to first do a small run (e.g. a small data file) under verbose, see what's 
+going on, and then improve your parameter settings for bigger analyses under lower 
+verbosity.
+
+=item C<-h> or C<--help>
+ 
+Prints usage message and quits.
+
+=item C<-m> or C<--manpage>
+
+Prints larger manual page and quits.
+
+=item C<-t toolname> or C<--tool=toolname>
+
+Name of the analysis tool to run, as listed here:
+
+L<https://www.phylo.org/restusers/docs/tools>
+
+For example: C<MAFFT_XSEDE>
+
+=item C<-p key=value> or C<--param key=value>
+
+A key/value pair that configures something about the tool. For example:
+C<-p vparam.runtime_=7.5> to configure the maximum run time. Consult the 
+B<REST Tool Info> page of the CIPRES documentation for the respective tools. This option
+can be used multiple times.
+
+=item C<-i filename> or C<--infile=filename>
+
+Path to an input file to analyze, e.g. an unaligned FASTA file.
+
+=item C<-o filename> or C<--outfile=filename>
+
+This is the name of a specific output type that CIPRES generates. In other words, this is
+B<not> a free form name for you to choose. It's one of the multiple outputs that the
+analysis can produce. For example, the alignment produced by MAFFT is called 
+C<output.mafft>. That is the name you need to specify here if you want that output 
+returned. You can also fetch things such as C<STDERR>, C<STDOUT>, and so on. Which outputs
+are produced by a specific tool can (to the best of my knowledge) only be figured out by
+running this program with the C<-v> (verbose) flag and then consulting the XML that is
+produced by the final step. I.e. this is not well documented by CIPRES.
+
+=item C<-w dirname> or C<--workdir=dirname>
+
+The name of a directory to which to write the output files.
+
+=item C<-y config.yml> or C<--yaml=config.yml>
+
+The CIPRES portal requires authentication (i.e., a user name and password), as well as an
+application key for your application. These can be obtained by taking the following steps:
+
+=over
+
+=item * B<Register yourself>
+
+This is done by filling out the following web form:
+
+L<https://www.phylo.org/restusers/register.action>
+
+=item * B<Register your application>
+
+Once you are registered as a REST API user and you are logged in, you can fill out the
+following form:
+
+L<https://www.phylo.org/restusers/createApplication!input.action>
+
+=item * B<Creating your config.yml>
+
+The credentials for the user, the application, and the server you will be talking to, need
+to be entered in a YAML file with the following fields:
+
+ ---
+ URL: https://cipresrest.sdsc.edu/cipresrest/v1
+ KEY: <your application key>
+ CRA_USER: <your user name>
+ PASSWORD: <your password>
+
+=back
+
+=back
+
+=head1 SEE ALSO
+
+This program is implemented by a package module whose documentation may be instructive as
+well. This can be found at L<Bio::Phylo::CIPRES>.
+
+=cut
+

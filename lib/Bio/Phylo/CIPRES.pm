@@ -10,6 +10,12 @@ use YAML qw(LoadFile);
 use Bio::Phylo::Util::Logger ':simple';
 use Bio::Phylo::Util::Exceptions 'throw';
 
+=head1 NAME
+
+Bio::Phylo::CIPRES - Reusable components for CIPRES REST API access
+
+=cut
+
 # global constants
 our $AUTOLOAD;
 use version; our $VERSION = qv("v0.1.0");

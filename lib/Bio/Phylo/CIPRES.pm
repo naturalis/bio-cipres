@@ -75,7 +75,7 @@ interfaces.
 
 # global constants
 our $AUTOLOAD;
-use version; our $VERSION = qv("v0.1.2");
+use version; our $VERSION = qv("v0.2.0");
 my $REALM = "Cipres Authentication";
 my $PORT  = 443;
 

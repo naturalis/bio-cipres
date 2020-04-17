@@ -12,3 +12,4 @@ doc/*
 \.DS_Store$
 ^Makefile$
 blib/*
+.travis.yml

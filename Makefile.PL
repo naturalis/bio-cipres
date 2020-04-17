@@ -10,7 +10,7 @@ WriteMakefile
     AUTHOR           => 'Rutger Vos <rutgeraldo@gmail.com>',
     VERSION_FROM     => 'lib/Bio/Phylo/CIPRES.pm',
     ABSTRACT_FROM    => 'lib/Bio/Phylo/CIPRES.pm',
-    MIN_PERL_VERSION => '5.0014';
+    MIN_PERL_VERSION => '5.0014',
     LICENSE          => 'perl',
     PREREQ_PM        => {
         'XML::Twig'      => '0',

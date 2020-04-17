@@ -1,4 +1,5 @@
 ![](https://cpants.cpanauthors.org/release/RVOSA/Bio-Phylo-CIPRES-v0.2.0.svg)
+![](https://travis-ci.org/naturalis/bio-cipres.svg?branch=master&status=started)
 
 ![](http://www.phylo.org/images/interface/logo_cipres.gif)
 

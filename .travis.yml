@@ -1,14 +1,5 @@
 language: perl
 perl:
-  - "5.24"
-  - "5.22"
-  - "5.20"
-  - "5.18"
-  - "5.16"
-  - "5.14"
-before_install:
-  - cpanm XML::Twig
-  - cpanm YAML
-  - cpanm Bio::Phylo
-  - cpanm URI
-  - cpanm LWP::UserAgent
+  - "5.30"
+  - "5.28"
+  - "5.26"

@@ -1,3 +1,4 @@
+MYMETA.*
 #!install_default
 t/sprot.fasta
 script/cipres_perl_demo.pl

@@ -1,3 +1,4 @@
+t/sprot.fasta
 script/cipres_perl_demo.pl
 conda/*
 MANIFEST\.bak

@@ -3,6 +3,7 @@ cipres_appinfo.yml
 .DS_Store
 *gisaid_cov2020_sequences*
 *concatenated.fasta*
+script/cipres_perl_demo.pl
 
 !Build/
 .last_cover_stats

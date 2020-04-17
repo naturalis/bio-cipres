@@ -16,21 +16,17 @@ Bio::Phylo::CIPRES - Reusable components for CIPRES REST API access
 
 =head1 SYNOPSIS
 
- my %result = Bio::Phylo::CIPRES->new( 
+ my $cipres = Bio::Phylo::CIPRES->new( 
  	'infile'    => 'infile.fasta',                 # input data file
  	'tool'      => 'MAFFT_XSEDE',                  # tool to run
  	'param'     => { 'vparam.runtime_' => 7.5 },   # extra parameters, e.g. max runtime
  	'outfile'   => { 'output.mafft' => 'out.fa' }, # name of output data to fetch
  	'yml'       => 'config.yml',	               # client credentials
- )->run;
+ );
  
- while( my ( $name, $data ) = each %result ) {
+ my $url = $cipres->run;
  
-    # write data to output file
- 	my $outfile = "${name}.fasta";
- 	open my $fh, '>', $outfile or die $!;
- 	print $fh $data;
- } 
+ $cipres->clean_job( $url );
 
 =head1 DESCRIPTION
 
@@ -75,7 +71,7 @@ interfaces.
 
 # global constants
 our $AUTOLOAD;
-use version; our $VERSION = qv("v0.2.0");
+use version; our $VERSION = qv("v0.2.1");
 my $REALM = "Cipres Authentication";
 my $PORT  = 443;
 

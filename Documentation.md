@@ -40,7 +40,7 @@ cipreusrun is command line interface to the CIPRES analysis portal.
 
 [GitHub repository for bio-phylo-cipres](https://github.com/naturalis/bio-cipres/tree/master/conda/perl-bio-phylo-cipres/v0.2.1)
 
-Perl module and dependencies
+#### Perl module and dependencies
 
 [Bio::Phylo::CIPRES](https://metacpan.org/pod/release/RVOSA/Bio-Phylo-CIPRES-v0.2.1/lib/Bio/Phylo/CIPRES.pm) - Reusable components for CIPRES REST API access 
 
@@ -49,7 +49,7 @@ Perl module and dependencies
 [GitHub repository for cipresrun](https://github.com/naturalis/bio-cipres/blob/master/lib/Bio/Phylo/CIPRES.pm)
 
 
-- Aligning sequences
+#### Aligning sequences
 
 Command-line usage:
 
@@ -78,7 +78,7 @@ Command-line parameters:
 
 ```
 
-- Inferring trees 
+#### Inferring trees 
 
 
 Command-line usage:

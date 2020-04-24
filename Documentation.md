@@ -7,11 +7,11 @@ We are analysing evolutionary history of SARS-CoV-2 genomes.
 
 ## Data description
 
-Genome - fasta format SARS-CoV2 genomes.
+[Genome](https://github.com/naturalis/bio-cipres/tree/master/data/genomes) - fasta format SARS-CoV2 genomes.
 
-Genes - SARS-CoV-2 genes.
+[Genes](https://github.com/naturalis/bio-cipres/tree/master/data/genes) - SARS-CoV-2 genes.
 
-Alignment output (whole genome phylogeny) - fasta format alignment file of SARS-CoV-2 genomes. 
+[Alignment output](https://github.com/naturalis/bio-cipres/tree/master/data/alignments) (whole genome phylogeny) - fasta format alignment file of SARS-CoV-2 genomes. 
 
 ## Implementation
 
@@ -21,12 +21,14 @@ Entire construct is a two-step process.
 
 1. Alignment
 
-2. iTOL tree generation and visualisatiion.
-
-Steps:
-
 ```
 mafft --anysymbol sequences > alignment
+
+```
+
+2. iTOL tree generation and visualisatiion.
+
+```
 
 iqtree -s alignment -alrt 1000 -nt 4
 
